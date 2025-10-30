@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Pending Withdrawals - Admin{% endblock %}
+
+{% block banner-slider %}
+    <div class="page-title">
+        <nav class="breadcrumbs">
+                <div class="container">
+                    <ol>
+                        <li><a href="index.html">Home</a></li>
+                        <li class="current">Pending Withdrawals</li>
+                    </ol>
+                </div>
+        </nav>
+    </div><!-- End Page Title -->
+{% endblock %}
+
+
+{% block main-content %}
+<div class="container py-4">
+  <h3>Pending Withdrawals</h3>
+
+  <table class="table table-striped mt-3">
+    <thead>
+      <tr>
+        <th>Request ID</th>
+        <th>User</th>
+        <th>Amount</th>
+        <th>Chain</th>
+        <th>To Address</th>
+        <th>Requested At</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for w in pending %}
+        <tr>
+          <td>{{ w.id }}</td>
+          <td>{{ w.user.email }}</td>
+          <td>${{ w.amount }}</td>
+          <td>{{ w.chain }}</td>
+          <td><code>{{ w.to_address }}</code></td>
+          <td>{{ w.requested_at|date:"M d, Y H:i" }}</td>
+          <td>
+            <a href="{% url 'payment:approve_withdrawal' w.id %}" class="btn btn-success btn-sm">Approve</a>
+            <a href="{% url 'payment:decline_withdrawal' w.id %}" class="btn btn-danger btn-sm">Decline</a>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="7" class="text-muted">No pending withdrawals</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

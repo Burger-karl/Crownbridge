@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Invest Page{% endblock title %}
+
+{% block banner-slider %}
+    <div class="page-title">
+        <nav class="breadcrumbs">
+                <div class="container">
+                    <ol>
+                        <li><a href="{% url 'home' %}">Home</a></li>
+                        <li class="current">Invest</li>
+                    </ol>
+                </div>
+        </nav>
+    </div><!-- End Page Title -->
+{% endblock %}
+
+{% block main-content %}
+<div class="container">
+  <div class="card shadow-sm p-4">
+    <h3>Invest in {{ plan.name }}</h3>
+    <p>Profit: {{ plan.profit_percent }}% | Duration: {{ plan.duration_hours }} hours</p>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label for="amount" class="form-label">Amount (USD)</label>
+        <input id="amount" name="amount" type="number" step="0.01" class="form-control" required
+               min="{{ plan.min_deposit }}" {% if plan.max_deposit %} max="{{ plan.max_deposit }}" {% endif %}>
+      </div>
+
+      <div class="mb-3">
+        <label for="chain" class="form-label">Payment Chain</label>
+        <select id="chain" name="chain" class="form-select" required>
+          {% for pw in chains %}
+            {# pw may be a PlatformWallet (with attributes .chain and method get_chain_display)
+              or a SimpleNamespace with .chain and .display #}
+            <option value="{{ pw.chain }}">
+              {% if pw.get_chain_display %}
+                {{ pw.get_chain_display }}
+              {% else %}
+                {{ pw.display }}
+              {% endif %}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      
+
+      <div class="d-grid">
+        <button class="btn btn-primary">Proceed to Deposit</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+

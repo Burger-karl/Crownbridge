@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Withdrawal Payment{% endblock %}
+
+{% block banner-slider %}
+    <div class="page-title">
+        <nav class="breadcrumbs">
+                <div class="container">
+                    <ol>
+                        <li><a href="index.html">Home</a></li>
+                        <li class="current">Withdrawal Payment</li>
+                    </ol>
+                </div>
+        </nav>
+    </div><!-- End Page Title -->
+{% endblock %}
+
+
+{% block main-content %}
+<div class="container py-4">
+  <h4>Withdrawal Payment</h4>
+  <div class="card p-3">
+    <p>Withdrawal ID: <strong>{{ withdrawal.id }}</strong></p>
+    <p>Amount: <strong>${{ withdrawal.amount }}</strong></p>
+    <p>To: <code>{{ withdrawal.to_address }}</code></p>
+    <p>Status: <strong>{{ withdrawal.status }}</strong></p>
+
+    <div class="alert alert-info">
+      This is a placeholder payment page. In production the payout service would broadcast the transaction and update the withdrawal record (tx_hash & status).
+    </div>
+    <a href="{% url 'payment:withdrawals' %}" class="btn btn-secondary">Back</a>
+  </div>
+</div>
+{% endblock %}

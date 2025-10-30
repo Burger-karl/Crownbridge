@@ -1,0 +1,219 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+{% block title %}My Dashboard{% endblock title %}
+
+{% block banner-slider %}
+    <!-- ======= Sidebar ======= -->
+    <aside id="sidebar" class="sidebar">
+        <ul class="sidebar-nav" id="sidebar-nav">
+            <li class="nav-item">
+                <a class="nav-link active" href="#">
+                    <i class="bi bi-grid"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li><!-- End Dashboard Nav -->
+
+            <li class="nav-heading">Pages</li>
+
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="{% url 'home' %}">
+                    <i class="bi bi-person"></i>
+                    <span>Home</span>
+                </a>
+            </li><!-- End Profile Page Nav -->
+      
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#">
+                    <i class="bi bi-question-circle"></i>
+                    <span>Profile</span>
+                </a>
+            </li><!-- End F.A.Q Page Nav -->
+      
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#">
+                    <i class="bi bi-card-list"></i>
+                    <span>About Us</span>
+                </a>
+            </li><!-- End Register Page Nav -->
+      
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="{% url 'logout' %}">
+                    <i class="bi bi-dash-circle"></i>
+                    <span>Logout</span>
+                </a>
+            </li><!-- End Error 404 Page Nav -->
+        </ul>
+    </aside><!-- End Sidebar-->
+{% endblock banner-slider %}
+
+{% block main-content %}
+<div class="container py-4">
+  <h2 class="mb-4">My Investment Portfolio</h2>
+
+  {% if messages %}
+  <div class="mb-3">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if page_obj %}
+  <div class="row row-cols-1 row-cols-md-2 g-4">
+    {% for inv in page_obj %}
+    <div class="col">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <h5 class="card-title">{{ inv.plan.name }}</h5>
+          <p class="text-muted mb-2">Invested on {{ inv.start_time|date:"M d, Y H:i" }}</p>
+
+          <ul class="list-group list-group-flush mb-3">
+            <li class="list-group-item d-flex justify-content-between">
+              <span>Amount Invested:</span>
+              <strong>${{ inv.amount_invested }}</strong>
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+              <span>Expected Profit:</span>
+              <strong>${{ inv.calculate_expected_profit|floatformat:2 }}</strong>
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+              <span>Duration:</span>
+              <span>{{ inv.plan.duration_hours }} hours</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+              <span>Chain:</span>
+              <span>{{ intent_map.inv.plan.id|default:"N/A" }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+              <span>Status:</span>
+              {% if inv.is_active %}
+                <span class="badge bg-success">Active</span>
+              {% else %}
+                <span class="badge bg-secondary">Completed</span>
+              {% endif %}
+            </li>
+          </ul>
+
+          {% if inv.is_active %}
+          <div class="d-grid">
+            <a href="{% url 'payment:withdraw' %}" class="btn btn-outline-primary btn-sm">Withdraw Profit</a>
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+
+    <hr class="my-5">
+    <h3 class="mb-4">Withdrawal Summary</h3>
+
+    <div class="row text-center mb-4">
+      <div class="col-md-4">
+        <div class="card bg-success text-white shadow-sm border-0">
+          <div class="card-body">
+            <h5>Total Withdrawn</h5>
+            <h3>${{ total_withdrawn|floatformat:2 }}</h3>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card bg-info text-white shadow-sm border-0">
+          <div class="card-body">
+            <h5>Last Withdrawal</h5>
+            {% if last_withdrawal %}
+              <p class="mb-1">${{ last_withdrawal.amount|floatformat:2 }}</p>
+              <small>{{ last_withdrawal.chain|upper }} | {{ last_withdrawal.created_at|date:"M d, Y H:i" }}</small>
+            {% else %}
+              <p>No withdrawals yet</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card bg-warning text-white shadow-sm border-0">
+          <div class="card-body">
+            <h5>Status of Last Request</h5>
+            {% if last_withdrawal %}
+              <span class="badge bg-dark">{{ last_withdrawal.status|title }}</span>
+            {% else %}
+              <span class="badge bg-secondary">N/A</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h5 class="mt-4">Recent Withdrawals</h5>
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>#</th>
+          <th>Amount</th>
+          <th>Chain</th>
+          <th>Status</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for wd in recent_withdrawals %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>${{ wd.amount|floatformat:2 }}</td>
+            <td>{{ wd.chain|upper }}</td>
+            <td>
+              {% if wd.status == "sent" %}
+                <span class="badge bg-success">Successful</span>
+              {% elif wd.status == "pending" %}
+                <span class="badge bg-warning text-dark">Pending</span>
+              {% elif wd.status == "failed" %}
+                <span class="badge bg-danger">Failed</span>
+              {% else %}
+                <span class="badge bg-secondary">{{ wd.status|title }}</span>
+              {% endif %}
+            </td>
+            <td>{{ wd.created_at|date:"M d, Y H:i" }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5" class="text-center text-muted">No withdrawals yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+
+  </div>
+
+  
+
+  <!-- Pagination -->
+  <nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+      {% if page_obj.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+      </li>
+      {% endif %}
+
+      <li class="page-item active">
+        <span class="page-link">
+          Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+      </li>
+
+      {% if page_obj.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+      </li>
+      {% endif %}
+    </ul>
+  </nav>
+
+  {% else %}
+  <div class="text-center py-5">
+    <p class="lead text-muted">You have no active or past investments yet.</p>
+    <a href="{% url 'dashboard:home' %}" class="btn btn-primary">Explore Investment Plans</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

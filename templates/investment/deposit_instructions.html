@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Deposit Instructions{% endblock title %}
+
+{% block banner-slider %}
+<div class="page-title">
+  <nav class="breadcrumbs">
+    <div class="container">
+      <ol>
+        <li><a href="{% url 'home' %}">Home</a></li>
+        <li class="current">Deposit Instructions</li>
+      </ol>
+    </div>
+  </nav>
+</div>
+{% endblock %}
+
+{% block main-content %}
+<div class="container py-5">
+  <div class="card shadow-sm p-4">
+    <h3 class="mb-3 text-center">Deposit Instructions for {{ plan.name }}</h3>
+
+    <div class="alert alert-info">
+      Please send exactly <strong>${{ amount }}</strong> worth of USDT
+      via <strong>{{ chain|upper }}</strong> network to the wallet address below.
+    </div>
+
+    <div class="text-center my-4">
+      <h5>Wallet Address</h5>
+      <div class="bg-light border rounded p-3">
+        <code style="font-size: 1.1rem;">{{ deposit_address }}</code>
+      </div>
+    </div>
+
+    <p class="text-muted text-center">
+      After payment, the system will automatically detect your deposit within a few minutes.
+    </p>
+
+    <div class="d-flex justify-content-center">
+      <a href="{% url 'home' %}" class="btn btn-secondary me-3">Back to Dashboard</a>
+      <a href="{% url 'investment:invest_page' plan.id %}" class="btn btn-outline-primary">Make Another Deposit</a>
+    </div>
+    <hr>
+
+    <p class="mt-4 small text-muted">
+      <strong>Note:</strong> Only send using the selected network ({{ chain|upper }}). Sending via another network may result in permanent loss of funds.
+    </p>
+  </div>
+</div>
+{% endblock %}

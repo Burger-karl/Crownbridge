@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Withdrawal History{% endblock %}
+
+{% block banner-slider %}
+    <div class="page-title">
+        <nav class="breadcrumbs">
+                <div class="container">
+                    <ol>
+                        <li><a href="index.html">Home</a></li>
+                        <li class="current">Withdrawal History</li>
+                    </ol>
+                </div>
+        </nav>
+    </div><!-- End Page Title -->
+{% endblock %}
+
+
+{% block main-content %}
+<div class="container py-4">
+  <h3>My Withdrawals</h3>
+  <div class="list-group mt-3">
+    {% for w in withdrawals %}
+      <div class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+          <strong>${{ w.amount }}</strong> • {{ w.chain|upper }} • requested {{ w.requested_at|date:"M d, Y H:i" }}
+          <div class="small text-muted">To: {{ w.to_address }}</div>
+        </div>
+
+        <div>
+          {% if w.status == 'pending' %}
+            <button class="btn btn-outline-secondary" disabled>Processing</button>
+          {% elif w.status == 'approved' %}
+            <a class="btn btn-success" href="{% url 'payment:withdrawal_payment_page' w.id %}">Approved — Pay</a>
+          {% elif w.status == 'rejected' %}
+            <a class="btn btn-danger" href="{% url 'dashboard:home' %}">Declined</a>
+          {% elif w.status == 'sent' %}
+            <span class="badge bg-primary">Sent</span>
+          {% else %}
+            <span class="badge bg-secondary">{{ w.status|capfirst }}</span>
+          {% endif %}
+        </div>
+      </div>
+    {% empty %}
+      <p class="text-muted">You have not made any withdrawals yet.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Deposit Options{% endblock title %}
+
+{% block banner-slider %}
+    <div class="page-title">
+        <nav class="breadcrumbs">
+                <div class="container">
+                    <ol>
+                        <li><a href="index.html">Home</a></li>
+                        <li class="current">Deposit Options</li>
+                    </ol>
+                </div>
+        </nav>
+    </div><!-- End Page Title -->
+{% endblock %}
+
+{% block main-content %}
+    <div class="container">
+        <h3>Deposit USDT</h3>
+        <div class="row">
+            {% for addr in addresses %}
+            <div class="col-md-6 mb-3">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title text-capitalize">{{ addr.chain }}</h5>
+                        <p class="card-text">Send USDT (token) to the address below. Only send USDT on this chain.</p>
+                    <div class="alert bg-light border">
+                        <strong>{{ addr.address }}</strong>
+                    </div>
+                        <p class="small text-muted">After the network confirms your transaction, your balance will be credited automatically.</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <a href="{% url 'deposit_history' %}" class="btn btn-link">View deposit history</a>
+    </div>
+{% endblock %}

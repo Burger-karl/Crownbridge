@@ -1,0 +1,23 @@
+<!-- templates/users/verify_email.html -->
+{% extends "users/base.html" %}
+{% block title %}Verify Email | CryptoApp{% endblock %}
+
+{% block banner-slider %}
+<div class="d-flex justify-content-center">
+  <div class="card shadow-lg" style="width: 28rem;">
+    <div class="card-body">
+      <h4 class="card-title text-center mb-4">Verify Your Email</h4>
+      <p class="text-muted text-center">
+        Enter the OTP sent to your email. (Check console if using dev mode)
+      </p>
+      <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div class="d-grid">
+          <button type="submit" class="btn btn-warning">Verify</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
