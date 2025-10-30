@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-7lz(!#l*x1l(7@s18izu-r4o)ids=rk*q&=fa(h)j2k59z%39i
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', 'crownbridge.onrender.com']
 
 
 # Application definition
