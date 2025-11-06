@@ -15,6 +15,13 @@ logger = logging.getLogger(__name__)
 # Fixed receiver wallet address for testing (per your request)
 TEST_RECEIVER_WALLET = "TBVcbu56fAxhmw8akY8wjsGyad-EL4Stv66"
 
+def investment_plans_list(request):
+    """
+    Public page that shows all available investment plans.
+    """
+    plans = InvestmentPlan.objects.all().order_by('min_deposit')
+    return render(request, "investment/investment_plans.html", {"plans": plans})
+
 
 def invest_now_redirect(request, plan_id):
     """

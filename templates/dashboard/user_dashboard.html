@@ -23,16 +23,16 @@
             </li><!-- End Profile Page Nav -->
       
             <li class="nav-item">
-                <a class="nav-link collapsed" href="#">
+                <a class="nav-link collapsed" href="{% url 'investment:investment_plans' %}">
                     <i class="bi bi-question-circle"></i>
-                    <span>Profile</span>
+                    <span>Invest</span>
                 </a>
             </li><!-- End F.A.Q Page Nav -->
       
             <li class="nav-item">
-                <a class="nav-link collapsed" href="#">
+                <a class="nav-link collapsed" href="{% url 'payment:withdraw' %}">
                     <i class="bi bi-card-list"></i>
-                    <span>About Us</span>
+                    <span>Withdraw</span>
                 </a>
             </li><!-- End Register Page Nav -->
       
@@ -48,172 +48,111 @@
 
 {% block main-content %}
 <div class="container py-4">
-  <h2 class="mb-4">My Investment Portfolio</h2>
 
-  {% if messages %}
-  <div class="mb-3">
-    {% for message in messages %}
-    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-    {% endfor %}
-  </div>
-  {% endif %}
+  <div class="row g-4">
+    <!-- CARD 1: Total Amount + Crypto Swiper + Action Buttons -->
+    <div class="col-lg-6">
+      <div class="card shadow-sm border-0 p-4 text-center">
+        <h4 class="mb-3 text-muted">Total Account Value</h4>
+        <h1 class="fw-bold text-success mb-3">${{ available_balance|floatformat:2 }}</h1>
 
-  {% if page_obj %}
-  <div class="row row-cols-1 row-cols-md-2 g-4">
-    {% for inv in page_obj %}
-    <div class="col">
-      <div class="card shadow-sm border-0 h-100">
-        <div class="card-body">
-          <h5 class="card-title">{{ inv.plan.name }}</h5>
-          <p class="text-muted mb-2">Invested on {{ inv.start_time|date:"M d, Y H:i" }}</p>
-
-          <ul class="list-group list-group-flush mb-3">
-            <li class="list-group-item d-flex justify-content-between">
-              <span>Amount Invested:</span>
-              <strong>${{ inv.amount_invested }}</strong>
-            </li>
-            <li class="list-group-item d-flex justify-content-between">
-              <span>Expected Profit:</span>
-              <strong>${{ inv.calculate_expected_profit|floatformat:2 }}</strong>
-            </li>
-            <li class="list-group-item d-flex justify-content-between">
-              <span>Duration:</span>
-              <span>{{ inv.plan.duration_hours }} hours</span>
-            </li>
-            <li class="list-group-item d-flex justify-content-between">
-              <span>Chain:</span>
-              <span>{{ intent_map.inv.plan.id|default:"N/A" }}</span>
-            </li>
-            <li class="list-group-item d-flex justify-content-between">
-              <span>Status:</span>
-              {% if inv.is_active %}
-                <span class="badge bg-success">Active</span>
-              {% else %}
-                <span class="badge bg-secondary">Completed</span>
-              {% endif %}
-            </li>
-          </ul>
-
-          {% if inv.is_active %}
-          <div class="d-grid">
-            <a href="{% url 'payment:withdraw' %}" class="btn btn-outline-primary btn-sm">Withdraw Profit</a>
-          </div>
-          {% endif %}
-
+        <!-- TradingView Ticker Widget -->
+        <div class="tradingview-widget-container mb-4">
+          <div class="tradingview-widget-container__widget"></div>
+          <script type="text/javascript">
+            new TradingView.widget({
+              "symbols": [
+                { "description": "Bitcoin", "proName": "BINANCE:BTCUSDT" },
+                { "description": "Ethereum", "proName": "BINANCE:ETHUSDT" },
+                { "description": "BNB", "proName": "BINANCE:BNBUSDT" },
+                { "description": "Solana", "proName": "BINANCE:SOLUSDT" },
+                { "description": "XRP", "proName": "BINANCE:XRPUSDT" }
+              ],
+              "colorTheme": "light",
+              "isTransparent": false,
+              "showSymbolLogo": true,
+              "locale": "en"
+            });
+          </script>
+          <script src="https://s3.tradingview.com/external-embedding/embed-widget-tickers.js"></script>
         </div>
-      </div>
-    </div>
-    {% endfor %}
 
 
-    <hr class="my-5">
-    <h3 class="mb-4">Withdrawal Summary</h3>
-
-    <div class="row text-center mb-4">
-      <div class="col-md-4">
-        <div class="card bg-success text-white shadow-sm border-0">
-          <div class="card-body">
-            <h5>Total Withdrawn</h5>
-            <h3>${{ total_withdrawn|floatformat:2 }}</h3>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card bg-info text-white shadow-sm border-0">
-          <div class="card-body">
-            <h5>Last Withdrawal</h5>
-            {% if last_withdrawal %}
-              <p class="mb-1">${{ last_withdrawal.amount|floatformat:2 }}</p>
-              <small>{{ last_withdrawal.chain|upper }} | {{ last_withdrawal.created_at|date:"M d, Y H:i" }}</small>
-            {% else %}
-              <p>No withdrawals yet</p>
-            {% endif %}
-          </div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card bg-warning text-white shadow-sm border-0">
-          <div class="card-body">
-            <h5>Status of Last Request</h5>
-            {% if last_withdrawal %}
-              <span class="badge bg-dark">{{ last_withdrawal.status|title }}</span>
-            {% else %}
-              <span class="badge bg-secondary">N/A</span>
-            {% endif %}
-          </div>
+        <div class="d-flex justify-content-around">
+          <a href="{% url 'investment:investment_plans' %}" class="text-decoration-none">
+            <i class="bi bi-wallet2 fs-2 text-primary"></i>
+            <p class="mb-0">Deposit</p>
+          </a>
+          <a href="{% url 'investment:investment_plans' %}" class="text-decoration-none">
+            <i class="bi bi-graph-up-arrow fs-2 text-success"></i>
+            <p class="mb-0">Invest</p>
+          </a>
+          <a href="{% url 'payment:withdraw' %}" class="text-decoration-none">
+            <i class="bi bi-cash-stack fs-2 text-warning"></i>
+            <p class="mb-0">Withdraw</p>
+          </a>
         </div>
       </div>
     </div>
 
-    <h5 class="mt-4">Recent Withdrawals</h5>
-    <table class="table table-hover align-middle">
-      <thead class="table-light">
-        <tr>
-          <th>#</th>
-          <th>Amount</th>
-          <th>Chain</th>
-          <th>Status</th>
-          <th>Date</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for wd in recent_withdrawals %}
-          <tr>
-            <td>{{ forloop.counter }}</td>
-            <td>${{ wd.amount|floatformat:2 }}</td>
-            <td>{{ wd.chain|upper }}</td>
-            <td>
-              {% if wd.status == "sent" %}
-                <span class="badge bg-success">Successful</span>
-              {% elif wd.status == "pending" %}
-                <span class="badge bg-warning text-dark">Pending</span>
-              {% elif wd.status == "failed" %}
-                <span class="badge bg-danger">Failed</span>
-              {% else %}
-                <span class="badge bg-secondary">{{ wd.status|title }}</span>
-              {% endif %}
-            </td>
-            <td>{{ wd.created_at|date:"M d, Y H:i" }}</td>
-          </tr>
-        {% empty %}
-          <tr><td colspan="5" class="text-center text-muted">No withdrawals yet.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <!-- CARD 2: Available Balance -->
+    <div class="col-lg-6">
+      <div class="card shadow-sm border-0 p-4 text-center">
+        <h5>Your Available Balance:</h5>
+        {% if available_balance > 0 %}
+          <h2 class="text-success">${{ available_balance|floatformat:2 }}</h2>
+        {% else %}
+          <p class="text-danger">
+            Please <a href="#">fund your account</a>
+          </p>
+        {% endif %}
+      </div>
+    </div>
 
+    <!-- CARD 3: Total Deposit & Withdraw -->
+    <div class="col-lg-6">
+      <div class="card shadow-sm border-0 p-4 text-center">
+        <h5>Total Deposit: <span class="text-success">${{ total_deposit|floatformat:2 }}</span></h5>
+        <h5>Total Withdrawn: <span class="text-danger">${{ total_withdrawn|floatformat:2 }}</span></h5>
+      </div>
+    </div>
+
+    <!-- inside your 4th card (KYC) -->
+    <div class="card shadow-sm border-0 p-4 text-center">
+      {% if kyc_verified %}
+        <h5 class="text-success">✅ KYC Verified</h5>
+        <p>Your account is fully verified.</p>
+      {% else %}
+        <h5 class="text-warning">⚠️ KYC Required</h5>
+        <a href="{% url 'kyc:verify' %}" class="btn btn-outline-primary">Verify Your Identity</a>
+      {% endif %}
+
+      <hr>
+
+      <h6 class="mt-3">Your referral link</h6>
+      <div class="input-group mt-2">
+        <input type="text" class="form-control" id="refLink" value="{{ referral_url }}" readonly>
+        <button class="btn btn-outline-secondary" id="copyRefBtn">Copy</button>
+      </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const btn = document.getElementById('copyRefBtn');
+      if (btn) {
+        btn.addEventListener('click', function () {
+          const input = document.getElementById('refLink');
+          input.select();
+          navigator.clipboard.writeText(input.value).then(() => {
+            btn.innerText = 'Copied!';
+            setTimeout(()=> btn.innerText = 'Copy', 1500);
+          });
+        });
+      }
+    });
+    </script>
 
   </div>
 
-  
-
-  <!-- Pagination -->
-  <nav aria-label="Page navigation" class="mt-4">
-    <ul class="pagination justify-content-center">
-      {% if page_obj.has_previous %}
-      <li class="page-item">
-        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
-      </li>
-      {% endif %}
-
-      <li class="page-item active">
-        <span class="page-link">
-          Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-        </span>
-      </li>
-
-      {% if page_obj.has_next %}
-      <li class="page-item">
-        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
-      </li>
-      {% endif %}
-    </ul>
-  </nav>
-
-  {% else %}
-  <div class="text-center py-5">
-    <p class="lead text-muted">You have no active or past investments yet.</p>
-    <a href="{% url 'dashboard:home' %}" class="btn btn-primary">Explore Investment Plans</a>
-  </div>
-  {% endif %}
 </div>
 {% endblock %}

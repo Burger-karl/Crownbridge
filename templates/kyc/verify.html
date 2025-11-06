@@ -1,0 +1,119 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Verify KYC{% endblock %}
+
+{% block banner-slider %}
+    <!-- ======= Sidebar ======= -->
+    <aside id="sidebar" class="sidebar">
+        <ul class="sidebar-nav" id="sidebar-nav">
+            <li class="nav-item">
+                <a class="nav-link active" href="{% url 'user_dashboard' %}">
+                    <i class="bi bi-grid"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li><!-- End Dashboard Nav -->
+
+            <li class="nav-heading">Pages</li>
+
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="{% url 'home' %}">
+                    <i class="bi bi-person"></i>
+                    <span>Home</span>
+                </a>
+            </li><!-- End Profile Page Nav -->
+      
+          
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="{% url 'payment:withdraw' %}">
+                    <i class="bi bi-card-list"></i>
+                    <span>Withdraw</span>
+                </a>
+            </li><!-- End Register Page Nav -->
+      
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="{% url 'logout' %}">
+                    <i class="bi bi-dash-circle"></i>
+                    <span>Logout</span>
+                </a>
+            </li><!-- End Error 404 Page Nav -->
+        </ul>
+    </aside><!-- End Sidebar-->
+{% endblock banner-slider %}
+
+
+{% block main-content %}
+<div class="container py-5">
+
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <div class="card shadow-lg border-0 rounded-4 p-4">
+
+        <div class="text-center mb-4">
+          <h3 class="fw-bold text-primary">Verify Your Identity</h3>
+          <p class="text-muted small mb-0">
+            Please fill out the form below to complete your KYC verification.
+          </p>
+        </div>
+
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Full Name</label>
+            {{ form.full_name }}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Upload ID Document</label>
+            {{ form.id_document }}
+            <div class="form-text">Accepted formats: JPG, PNG, or PDF (max 5MB)</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Upload Selfie</label>
+            {{ form.selfie }}
+            <div class="form-text">Accepted formats: JPG, PNG, or PDF (max 5MB)</div>
+          </div>
+
+          <div class="d-grid mt-4">
+            <button type="submit" class="btn btn-primary btn-lg">
+              <i class="bi bi-shield-check me-2"></i> Submit Verification
+            </button>
+          </div>
+        </form>
+
+      </div>
+
+      <div class="text-center mt-4">
+        <p class="small text-muted">
+          Your information is encrypted and securely stored. Verification typically takes 24–48 hours.
+        </p>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- <div class="container py-5">
+  <h3>Verify Your Identity</h3>
+  <form method="post" enctype="multipart/form-data" class="mt-4">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Submit KYC</button>
+  </form>
+</div> -->

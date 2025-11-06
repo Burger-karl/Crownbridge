@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Deposit Instructions{% endblock title %}
+
+{% block banner-slider %}
+<div class="page-title">
+  <nav class="breadcrumbs">
+    <div class="container">
+      <ol>
+        <li><a href="{% url 'home' %}">Home</a></li>
+        <li class="current">Deposit Instructions</li>
+      </ol>
+    </div>
+  </nav>
+</div>
+{% endblock %}
+
+{% block main-content %}
+<div class="container py-5">
+  <h2 class="text-center mb-4">Available Investment Plans</h2>
+
+  <div class="row g-4">
+    {% for plan in plans %}
+    <div class="col-md-4">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body text-center">
+          <h4 class="card-title text-primary">{{ plan.name }}</h4>
+          <p class="card-text text-muted mb-2">
+            Profit: <strong>{{ plan.profit_percent }}%</strong> after 
+            <strong>{{ plan.duration_hours }}</strong> hours
+          </p>
+          <p class="card-text mb-2">
+            Min Deposit: ${{ plan.min_deposit }}<br>
+            Max Deposit: {% if plan.max_deposit %}${{ plan.max_deposit }}{% else %}Unlimited{% endif %}
+          </p>
+
+          {% if plan.instant_withdrawal %}
+            <span class="badge bg-success">Instant Withdrawal</span>
+          {% else %}
+            <span class="badge bg-secondary">Manual Payout</span>
+          {% endif %}
+
+          <hr>
+          <a href="{% url 'investment:invest_redirect' plan.id %}" class="btn btn-outline-primary w-100">
+            Invest Now
+          </a>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center">
+      <p class="text-muted">No investment plans available yet.</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

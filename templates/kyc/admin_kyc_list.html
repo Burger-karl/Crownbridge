@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Pending KYC - Admin{% endblock %}
+
+{% block banner-slider %}
+    <div class="page-title">
+        <nav class="breadcrumbs">
+                <div class="container">
+                    <ol>
+                        <li><a href="index.html">Home</a></li>
+                        <li class="current">Pending KYC</li>
+                    </ol>
+                </div>
+        </nav>
+    </div><!-- End Page Title -->
+{% endblock %}
+
+{% block main-content %}
+<div class="container py-5">
+  <h3 class="fw-bold mb-4 text-center">KYC Verification Management</h3>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="table-responsive shadow-sm rounded-4">
+    <table class="table align-middle table-hover">
+      <thead class="table-dark">
+        <tr>
+          <th>#</th>
+          <th>User</th>
+          <th>Email</th>
+          <th>ID Document</th>
+          <th>Selfie</th>
+          <th>Status</th>
+          <th>Submitted</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for kyc in kycs %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ kyc.user.full_name|default:"-" }}</td>
+            <td>{{ kyc.user.email }}</td>
+            <td>
+              <a href="{{ kyc.id_document.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                View ID
+              </a>
+            </td>
+            <td>
+              <a href="{{ kyc.selfie.url }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                View Selfie
+              </a>
+            </td>
+            <td>
+              {% if kyc.verified %}
+                <span class="badge bg-success">Verified</span>
+              {% else %}
+                <span class="badge bg-warning text-dark">Pending</span>
+              {% endif %}
+            </td>
+            <td>{{ kyc.submitted_at|date:"M d, Y H:i" }}</td>
+            <td>
+              {% if not kyc.verified %}
+                <a href="{% url 'kyc:approve_kyc' kyc.pk %}" class="btn btn-success btn-sm">Approve</a>
+                <a href="{% url 'kyc:reject_kyc' kyc.pk %}" class="btn btn-danger btn-sm">Reject</a>
+              {% else %}
+                <button class="btn btn-outline-secondary btn-sm" disabled>Approved</button>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="8" class="text-center text-muted py-4">No KYC submissions yet.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

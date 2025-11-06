@@ -33,43 +33,63 @@ def home_view(request):
     })
 
 
-# dashboard/views.py
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.contrib import messages
+from django.db import models
 from django.utils import timezone
 from investment.models import UserInvestment, InvestmentIntent
-from payment.models import WithdrawalRequest
-from django.db import models
+from payment.models import WithdrawalRequest, Deposit
 
 @login_required
 def user_dashboard_view(request):
     """
-    Displays user's investments and withdrawal statistics.
+    Displays user's investment dashboard with stats and KYC info.
     """
-    # Investments
+
+    user = request.user
+
+    # --- INVESTMENTS ---
     investments = (
-        UserInvestment.objects.filter(user=request.user)
+        UserInvestment.objects.filter(user=user)
         .select_related("plan")
         .order_by("-start_time")
     )
-    intents = InvestmentIntent.objects.filter(user=request.user)
+    intents = InvestmentIntent.objects.filter(user=user)
     intent_map = {i.plan_id: i.chain for i in intents}
 
-    # Withdrawals
-    withdrawals = WithdrawalRequest.objects.filter(user=request.user).order_by("-created_at")
-    total_withdrawn = withdrawals.filter(status="sent").aggregate(models.Sum("amount"))["amount__sum"] or 0
+    # --- DEPOSITS & WITHDRAWALS ---
+    deposits = Deposit.objects.filter(user=user, status="successful")
+    withdrawals = WithdrawalRequest.objects.filter(user=user)
+
+    total_deposit = deposits.aggregate(total=models.Sum("amount"))["total"] or 0
+    total_withdrawn = withdrawals.filter(status="sent").aggregate(total=models.Sum("amount"))["total"] or 0
+    available_balance = total_deposit - total_withdrawn
+
     last_withdrawal = withdrawals.first()
 
     paginator = Paginator(investments, 10)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
+    # --- KYC STATUS ---
+    kyc_verified = user.kyc_verified  # ✅ now directly from CustomUser
+
+    referral_url = request.build_absolute_uri(user.referral_link)
+
+
     context = {
-        "user": request.user,
+        "user": user,
         "page_obj": page_obj,
         "intent_map": intent_map,
+        "available_balance": available_balance,
+        "total_deposit": total_deposit,
         "total_withdrawn": total_withdrawn,
+        "kyc_verified": kyc_verified,
         "last_withdrawal": last_withdrawal,
         "recent_withdrawals": withdrawals[:5],
+        "referral_url": referral_url,
     }
+
     return render(request, "dashboard/user_dashboard.html", context)
