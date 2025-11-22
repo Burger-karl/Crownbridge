@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Deposit History{% endblock title %}
+
+{% block banner-slider %}
+    <div class="page-title">
+        <nav class="breadcrumbs">
+                <div class="container">
+                    <ol>
+                        <li><a href="index.html">Home</a></li>
+                        <li class="current">Deposit History</li>
+                    </ol>
+                </div>
+        </nav>
+    </div><!-- End Page Title -->
+{% endblock %}
+
+{% block main-content %}
+  <div class="container py-4">
+    <h2>Your Deposits</h2>
+    <div class="card p-3">
+      <table>
+        <thead><tr><th>Amount</th><th>Chain</th><th>Status</th><th>Created</th></tr></thead>
+        <tbody>
+          {% for d in deposits %}
+          <tr>
+            <td>{{ d.amount }}</td>
+            <td>
+                {% if d.platform_wallet %}
+                    {{ d.platform_wallet.chain }}
+                {% else %}
+                    Unknown
+                {% endif %}
+            </td>
+            <td>{{ d.status }}</td>
+            <td>{{ d.created_at }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4">No deposits yet.</td></tr>
+          {% endfor %}
+        </tbody>
+
+      </table>
+    </div>
+    
+  </div>
+  
+  <p><a href="{% url 'payment:deposit' %}">Create new deposit</a></p>
+{% endblock %}

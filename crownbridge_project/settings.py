@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'investment',
     'payment',
     'kyc',
+    'supportchat',
 
     'rest_framework',
     'rest_framework_simplejwt',
@@ -160,3 +161,5 @@ MEDIA_ROOT = BASE_DIR/'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'users.CustomUser'
+
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")

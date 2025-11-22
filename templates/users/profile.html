@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Profile{% endblock title %}
+
+{% block banner-slider %}
+<div class="page-title">
+  <nav class="breadcrumbs">
+    <div class="container">
+      <ol>
+        <li><a href="{% url 'home' %}">Home</a></li>
+        <li class="current">Profile</li>
+      </ol>
+    </div>
+  </nav>
+</div>
+{% endblock %}
+
+{% block main-content %}
+<div class="container py-4">
+
+    <div class="card shadow p-4">
+        <div class="text-center text-secondary">
+            <img src="{{ profile.avatar.url }}" class="rounded-circle" width="150" height="150">
+            
+        </div>
+
+        <hr>
+        
+        <p><strong>First Name:</strong>{{ profile.firstname }}</p>
+        <p><strong>Last Name:</strong>{{ profile.lastname }}</p>
+        <p><strong>Email:</strong>{{ profile.email }}</p>
+        <p><strong>Country:</strong> {{ profile.country }}</p>
+        <p><strong>Phone:</strong> {{ profile.phone }}</p>
+        <p><strong>Joined:</strong> {{ profile.user.date_joined }}</p>
+
+        <a href="{% url 'edit_profile' %}" class="btn btn-primary mt-3">Edit Profile</a>
+    </div>
+
+</div>
+{% endblock %}

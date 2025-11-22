@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Deposit Instructions{% endblock title %}
+
+{% block banner-slider %}
+    <div class="page-title">
+        <nav class="breadcrumbs">
+                <div class="container">
+                    <ol>
+                        <li><a href="index.html">Home</a></li>
+                        <li class="current">Deposit Instructions</li>
+                    </ol>
+                </div>
+        </nav>
+    </div><!-- End Page Title -->
+{% endblock %}
+
+{% block main-content %}
+    <div class="container py-4">
+        <h2>Deposit Instructions</h2>
+        <div class="card p-3">
+            <p>
+                Send exactly <strong>{{ deposit.amount }}</strong> to the following address on 
+                <strong>
+                    {% if deposit.platform_wallet %}
+                        {{ deposit.platform_wallet.chain }}
+                    {% else %}
+                        Unknown Network
+                    {% endif %}
+                </strong>:
+            </p>
+
+            <pre>{{ receiver_address }}</pre>
+            <p>Reference/intent id: <code>{{ deposit.tx_hash }}</code></p>
+            <p>Your deposit will be auto-detected and credited when confirmations are received.</p>
+
+        </div>
+    </div>
+    <a href="{% url 'payment:deposit_history' %}">Back to deposit history</a>
+{% endblock %}

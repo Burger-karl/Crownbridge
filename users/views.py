@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.urls import reverse
-from .forms import RegisterForm, LoginForm, VerifyOTPForm
+from .forms import RegisterForm, LoginForm, VerifyOTPForm, ProfileEditForm
 from .models import EmailVerification, CustomUser
 from datetime import timedelta
 
@@ -107,3 +107,25 @@ def logout_view(request):
     logout(request)
     messages.success(request, "You have been logged out.")
     return redirect( "login")
+
+
+@login_required
+def profile_view(request):
+    profile = request.user.profile
+    return render(request, "users/profile.html", {"profile": profile})
+
+
+@login_required
+def edit_profile_view(request):
+    profile = request.user.profile
+
+    if request.method == "POST":
+        form = ProfileEditForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Profile updated successfully!")
+            return redirect("profile")
+    else:
+        form = ProfileEditForm(instance=profile)
+
+    return render(request, "users/edit_profile.html", {"form": form})

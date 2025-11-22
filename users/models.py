@@ -6,11 +6,16 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.utils import timezone
 from .managers import CustomUserManager
 from django.urls import reverse
+from django.conf import settings
 
 
 def generate_referral_code():
     """Create short unique referral code — adapt length if you want."""
     return uuid.uuid4().hex[:10].upper()
+
+
+def default_avatar():
+    return "avatars/default.jpg" 
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
@@ -65,3 +70,21 @@ class EmailVerification(models.Model):
     @staticmethod
     def generate_otp():
         return str(random.randint(100000, 999999))  # 6-digit OTP
+    
+
+# -------------------------
+# PROFILE MODEL
+# -------------------------
+class Profile(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    firstname = models.CharField(max_length=100, blank=True)
+    lastname = models.CharField(max_length=100, blank=True)
+    country = models.CharField(max_length=100, blank=True)
+    phone = models.CharField(max_length=20, blank=True)
+    email = models.EmailField(blank=True)
+    avatar = models.ImageField(upload_to="avatars/", default=default_avatar)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.email} Profile"

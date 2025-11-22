@@ -35,7 +35,14 @@
                     <span>Withdraw</span>
                 </a>
             </li><!-- End Register Page Nav -->
-      
+
+            <li class="nav-item">
+              <a class="nav-link collapsed" href="{% url 'payment:p2ptransfer' %}">
+                  <i class="bi bi-arrow-left-right"></i>
+                  <span>P2P Transfer</span>
+              </a>
+            </li>
+
             <li class="nav-item">
                 <a class="nav-link collapsed" href="{% url 'logout' %}">
                     <i class="bi bi-dash-circle"></i>
@@ -79,7 +86,7 @@
 
 
         <div class="d-flex justify-content-around">
-          <a href="{% url 'investment:investment_plans' %}" class="text-decoration-none">
+          <a href="{% url 'payment:deposit' %}" class="text-decoration-none">
             <i class="bi bi-wallet2 fs-2 text-primary"></i>
             <p class="mb-0">Deposit</p>
           </a>
@@ -90,6 +97,10 @@
           <a href="{% url 'payment:withdraw' %}" class="text-decoration-none">
             <i class="bi bi-cash-stack fs-2 text-warning"></i>
             <p class="mb-0">Withdraw</p>
+          </a>
+          <a href="{% url 'payment:transfer' %}" class="text-decoration-none">
+            <i class="bi bi-credit-card-fill fs-2 text-warning"></i>
+            <p class="mb-0">Transfer</p>
           </a>
         </div>
       </div>
@@ -116,6 +127,43 @@
         <h5>Total Withdrawn: <span class="text-danger">${{ total_withdrawn|floatformat:2 }}</span></h5>
       </div>
     </div>
+
+    <!--- P2P Transfer-->
+    <div class="col-lg-12 mt-4">
+      <div class="card shadow-sm border-0 p-4">
+        <h4>P2P Transfer History</h4>
+        <table class="table mt-3">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>User</th>
+              <th>Amount</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for t in sent_transfers %}
+            <tr>
+              <td class="text-danger">Sent</td>
+              <td>{{ t.receiver.email }}</td>
+              <td>${{ t.amount }}</td>
+              <td>{{ t.created_at }}</td>
+            </tr>
+            {% endfor %}
+
+            {% for t in received_transfers %}
+            <tr>
+              <td class="text-success">Received</td>
+              <td>{{ t.sender.email }}</td>
+              <td>${{ t.amount }}</td>
+              <td>{{ t.created_at }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
 
     <!-- inside your 4th card (KYC) -->
     <div class="card shadow-sm border-0 p-4 text-center">

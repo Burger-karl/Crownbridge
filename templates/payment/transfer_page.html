@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Transfer Page{% endblock title %}
+
+{% block banner-slider %}
+    <div class="page-title">
+        <nav class="breadcrumbs">
+                <div class="container">
+                    <ol>
+                        <li><a href="index.html">Home</a></li>
+                        <li class="current">Transfer Page</li>
+                    </ol>
+                </div>
+        </nav>
+    </div><!-- End Page Title -->
+{% endblock %}
+
+{% block main-content %}
+  <div class="container py-4">
+    <h2>Transfer Funds</h2>
+    <div class="card p-3">
+      <p>Your balance: {{ user_balance }}</p>
+      <form method="post">{% csrf_token %}
+        {{ form.as_p }}
+        <button class="btn btn-secondary" type="submit">Send</button>
+      </form>
+    </div>
+  </div>  
+  <p><a href="{% url 'payment:transfer_history' %}">View transaction history</a></p>
+{% endblock %}

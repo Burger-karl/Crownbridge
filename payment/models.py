@@ -1,17 +1,13 @@
 # payment/models.py
-
 import uuid
 from decimal import Decimal
 from django.conf import settings
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 
 User = settings.AUTH_USER_MODEL
 
 
-# ---------------------------------------------------------------------
-# User Balance & Transactions
-# ---------------------------------------------------------------------
 class UserBalance(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='balance')
     balance = models.DecimalField(max_digits=32, decimal_places=8, default=Decimal('0.0'))
@@ -19,15 +15,59 @@ class UserBalance(models.Model):
 
     def credit(self, amount: Decimal, note: str = "", reference: str = None):
         Transaction.objects.create(user=self.user, amount=amount, kind='credit', note=note, reference=reference)
-        self.balance += amount
+        # Ensure Decimal arithmetic
+        self.balance = (self.balance or Decimal('0')) + Decimal(amount)
         self.save(update_fields=['balance', 'updated_at'])
 
     def debit(self, amount: Decimal, note: str = "", reference: str = None):
-        if self.balance < amount:
+        amount = Decimal(amount)
+        if (self.balance or Decimal('0')) < amount:
             raise ValueError("Insufficient balance")
         Transaction.objects.create(user=self.user, amount=amount, kind='debit', note=note, reference=reference)
-        self.balance -= amount
+        self.balance = (self.balance or Decimal('0')) - amount
         self.save(update_fields=['balance', 'updated_at'])
+
+    def transfer_to(self, recipient_user, amount: Decimal, note: str = "Transfer"):
+        """
+        Atomically transfer `amount` from this user to recipient_user.
+        Creates Transaction rows for both parties and updates balances.
+        """
+        amount = Decimal(amount)
+
+        if self.user == recipient_user:
+            raise ValueError("Cannot transfer to self")
+        if amount <= Decimal('0'):
+            raise ValueError("Transfer amount must be positive")
+
+        # Use select_for_update to lock rows in a transaction
+        with transaction.atomic():
+            sender_balance = UserBalance.objects.select_for_update().get(pk=self.pk)
+            receiver_balance, _ = UserBalance.objects.select_for_update().get_or_create(user=recipient_user)
+
+            if (sender_balance.balance or Decimal('0')) < amount:
+                raise ValueError("Insufficient balance")
+
+            # record debit for sender
+            Transaction.objects.create(
+                user=self.user,
+                amount=amount,
+                kind='debit',
+                note=note,
+            )
+            sender_balance.balance = sender_balance.balance - amount
+            sender_balance.save(update_fields=['balance', 'updated_at'])
+
+            # record credit for receiver
+            Transaction.objects.create(
+                user=recipient_user,
+                amount=amount,
+                kind='credit',
+                note=f"Received transfer from {self.user}",
+            )
+            receiver_balance.balance = (receiver_balance.balance or Decimal('0')) + amount
+            receiver_balance.save(update_fields=['balance', 'updated_at'])
+
+            return sender_balance, receiver_balance
 
 
 class Transaction(models.Model):
@@ -44,13 +84,14 @@ class Transaction(models.Model):
         ordering = ['-created_at']
 
 
-# ---------------------------------------------------------------------
-# Wallet & Deposit System
-# ---------------------------------------------------------------------
 class PlatformWallet(models.Model):
     CHAIN_CHOICES = [
         ("ethereum", "Ethereum (ERC20)"),
         ("bsc", "Binance Smart Chain (BEP20)"),
+        ("tron", "Tron (TRC20)"),
+        ("bitcoin", "Bitcoin (BTC)"),
+        ("solana", "Solana (SOL)"),
+        ("polygon", "Polygon (MATIC)"),
     ]
 
     name = models.CharField(max_length=50)
@@ -113,9 +154,6 @@ class Deposit(models.Model):
         return f"{self.user} deposit {self.amount} ({self.status})"
 
 
-# ---------------------------------------------------------------------
-# Withdrawal Requests
-# ---------------------------------------------------------------------
 class WithdrawalRequest(models.Model):
     STATUS = [
         ("pending", "Pending"),
@@ -140,3 +178,16 @@ class WithdrawalRequest(models.Model):
 
     def __str__(self):
         return f"Withdrawal {self.amount} {self.chain} for {self.user} ({self.status})"
+
+
+class P2PTransfer(models.Model):
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sent_transfers")
+    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name="received_transfers")
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.sender.email} → {self.receiver.email} : {self.amount}"

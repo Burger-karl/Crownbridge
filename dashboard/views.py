@@ -40,7 +40,7 @@ from django.contrib import messages
 from django.db import models
 from django.utils import timezone
 from investment.models import UserInvestment, InvestmentIntent
-from payment.models import WithdrawalRequest, Deposit
+from payment.models import WithdrawalRequest, Deposit, P2PTransfer
 
 @login_required
 def user_dashboard_view(request):
@@ -60,7 +60,7 @@ def user_dashboard_view(request):
     intent_map = {i.plan_id: i.chain for i in intents}
 
     # --- DEPOSITS & WITHDRAWALS ---
-    deposits = Deposit.objects.filter(user=user, status="successful")
+    deposits = Deposit.objects.filter(user=user, status="confirmed")
     withdrawals = WithdrawalRequest.objects.filter(user=user)
 
     total_deposit = deposits.aggregate(total=models.Sum("amount"))["total"] or 0
@@ -78,6 +78,8 @@ def user_dashboard_view(request):
 
     referral_url = request.build_absolute_uri(user.referral_link)
 
+    sent_transfers = P2PTransfer.objects.filter(sender=user)
+    received_transfers = P2PTransfer.objects.filter(receiver=user)
 
     context = {
         "user": user,
@@ -90,6 +92,9 @@ def user_dashboard_view(request):
         "last_withdrawal": last_withdrawal,
         "recent_withdrawals": withdrawals[:5],
         "referral_url": referral_url,
+        "sent_transfers": sent_transfers,
+        "received_transfers": received_transfers,
+
     }
 
     return render(request, "dashboard/user_dashboard.html", context)

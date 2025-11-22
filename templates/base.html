@@ -95,6 +95,7 @@
                 <li><a href="#about">About</a></li>
                 {% if user.is_authenticated %}
                 <li><a href="{% url 'user_dashboard' %}">Dashboard</a></li>
+                <li><a href="{% url 'profile' %}">Profile</a></li>
                 {% if user.is_staff or user.is_superuser %}
                 <li><a href="{% url 'payment:admin_pending_withdrawals' %}">Withdrawals</a></li>
                 <li><a href="{% url 'kyc:admin_kyc_list' %}">KYC</a></li>
@@ -148,7 +149,7 @@
                 <div class="col-lg-4">
                     <div class="footer-content">
                         <a href="index.html" class="logo d-flex align-items-center mb-4">
-                        <span class="sitename">Strive</span>
+                        <span class="sitename">CrownBridge</span>
                         </a>
                         <p class="mb-4">Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae. Donec velit neque auctor sit amet aliquam vel ullamcorper sit amet ligula.</p>
 
@@ -171,7 +172,7 @@
 
                 <div class="col-lg-2 col-6">
                     <div class="footer-links">
-                        <h4>Company</h4>
+                        <h4>Investment</h4>
                         <ul>
                             <li><a href="#"><i class="bi bi-chevron-right"></i> About</a></li>
                             <li><a href="#"><i class="bi bi-chevron-right"></i> Careers</a></li>
@@ -203,7 +204,7 @@
                                 <i class="bi bi-geo-alt"></i>
                             </div>
                             <div class="contact-info">
-                                <p>2847 Maple Avenue<br>Los Angeles, CA 90210<br>United States</p>
+                                <p>87 Downing Avenue<br>London, <br>United Kingdom</p>
                             </div>
                         </div>
 
@@ -212,7 +213,7 @@
                                 <i class="bi bi-telephone"></i>
                             </div>
                             <div class="contact-info">
-                                <p>+1 (555) 987-6543</p>
+                                <p>+44 (212) 555-890</p>
                             </div>
                         </div>
 
@@ -221,7 +222,7 @@
                                 <i class="bi bi-envelope"></i>
                             </div>
                             <div class="contact-info">
-                                <p>contact@example.com</p>
+                                <p>support@crownbridgeltd.com</p>
                             </div>
                         </div>
 
@@ -243,7 +244,7 @@
                 <div class="row align-items-center">
                     <div class="col-lg-6">
                         <div class="copyright">
-                            <p>© <span>Copyright</span> <strong class="px-1 sitename">Strive</strong> <span>All Rights Reserved</span></p>
+                            <p>© <span>Copyright</span> <strong class="px-1 sitename">CrownBridge</strong> <span>All Rights Reserved</span></p>
                         </div>
                     </div>
                     <div class="col-lg-6">
@@ -261,6 +262,54 @@
         </div>
 
     </footer>
+
+    <!-- Floating Chat Button -->
+    <div id="support-btn" onclick="toggleChat()">💬</div>
+
+    <!-- Chat Popup -->
+    <div id="chat-popup">
+        <div id="chat-messages"></div>
+
+        <input type="text" id="chat-input" placeholder="Type your message..." onkeypress="if(event.key==='Enter') sendMessage()">
+        <button onclick="sendMessage()" class="btn btn-primary btn-sm mt-2" style="width:100%">Send</button>
+    </div>
+
+    <script>
+        function toggleChat() {
+            const popup = document.getElementById("chat-popup");
+            popup.style.display = popup.style.display === "flex" ? "none" : "flex";
+        }
+
+        function sendMessage() {
+            let msg = document.getElementById("chat-input").value;
+            if (!msg.trim()) return;
+
+            // Display user message
+            let chatBox = document.getElementById("chat-messages");
+            chatBox.innerHTML += `<div class='user-msg'>${msg}</div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            document.getElementById("chat-input").value = "";
+
+            fetch("/support/chat/", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({message: msg})
+            })
+            .then(res => res.json())
+            .then(data => {
+                let reply = data.reply || "No response";
+
+                chatBox.innerHTML += `<div class='bot-msg'>${reply}</div>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            })
+            .catch(() => {
+                chatBox.innerHTML += `<div class='bot-msg' style='color:red;'>Error connecting to support</div>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            });
+        }
+    </script>
+
 
   <!-- Scroll Top -->
   <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>

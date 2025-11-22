@@ -1,7 +1,7 @@
 # users/forms.py
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
-from .models import CustomUser
+from .models import CustomUser, Profile
 
 
 class RegisterForm(forms.ModelForm):
@@ -48,3 +48,19 @@ class LoginForm(AuthenticationForm):
 class VerifyOTPForm(forms.Form):
     email = forms.EmailField(widget=forms.EmailInput(attrs={"class": "form-control"}))
     otp = forms.CharField(max_length=6, widget=forms.TextInput(attrs={"class": "form-control"}))
+
+
+
+class ProfileEditForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ["firstname", "lastname", "country", "email", "phone", "avatar"]
+
+        widgets = {
+            "firstname": forms.TextInput(attrs={"class": "form-control"}),
+            "lastname": forms.TextInput(attrs={"class": "form-control"}),
+            "country": forms.TextInput(attrs={"class": "form-control"}),
+            "email": forms.EmailInput(attrs={"class": "form-control", "readonly": "readonly"}),  
+            "phone": forms.TextInput(attrs={"class": "form-control"}),
+            "avatar": forms.FileInput(attrs={"class": "form-control"}),
+        }

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Edit Profile{% endblock title %}
+
+{% block banner-slider %}
+<div class="page-title">
+  <nav class="breadcrumbs">
+    <div class="container">
+      <ol>
+        <li><a href="{% url 'home' %}">Home</a></li>
+        <li class="current">Edit Profile</li>
+      </ol>
+    </div>
+  </nav>
+</div>
+{% endblock %}
+
+{% block main-content %}
+<div class="container py-4">
+    <div class="card shadow p-4">
+        <h3>Edit Profile</h3>
+        <hr>
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                {{ form.firstname.label_tag }}
+                {{ form.firstname }}
+            </div>
+
+            <div class="mb-3">
+                {{ form.lastname.label_tag }}
+                {{ form.lastname }}
+            </div>
+
+            <div class="mb-3">
+                {{ form.country.label_tag }}
+                {{ form.country }}
+            </div>
+
+            <div class="mb-3">
+                {{ form.email.label_tag }}
+                {{ form.email }}
+            </div>
+
+            <div class="mb-3">
+                {{ form.phone.label_tag }}
+                {{ form.phone }}
+            </div>
+
+            <div class="mb-3">
+                {{ form.avatar.label_tag }}
+                {{ form.avatar }}
+            </div>
+
+            <button type="submit" class="btn btn-success">Save Changes</button>
+            <a href="{% url 'profile' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+
+    </div>
+</div>
+{% endblock %}
