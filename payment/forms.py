@@ -6,10 +6,10 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
-class WithdrawalRequestForm(forms.Form):
-    amount = forms.DecimalField(max_digits=32, decimal_places=8, min_value=Decimal('0.000001'))
-    to_address = forms.CharField(max_length=128)
-    chain = forms.ChoiceField(choices=[('ethereum', 'Ethereum'), ('bsc', 'BSC')])
+# class WithdrawalRequestForm(forms.Form):
+#     amount = forms.DecimalField(max_digits=32, decimal_places=8, min_value=Decimal('0.000001'))
+#     to_address = forms.CharField(max_length=128)
+#     chain = forms.ChoiceField(choices=[('ethereum', 'Ethereum'), ('bsc', 'BSC')])
 
 class DepositForm(forms.Form):
     amount = forms.DecimalField(max_digits=32, decimal_places=8, min_value=Decimal('0.000001'))
@@ -21,5 +21,62 @@ class TransferForm(forms.Form):
     note = forms.CharField(max_length=255, required=False)
 
 class P2PTransferForm(forms.Form):
-    receiver_email = forms.EmailField(label="Receiver Email")
-    amount = forms.DecimalField(max_digits=12, decimal_places=2)
+    receiver_email = forms.EmailField(
+        label="Receiver Email",
+        widget=forms.EmailInput(attrs={
+            "class": "form-control",
+            "placeholder": "Enter receiver email"
+        })
+    )
+    amount = forms.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "placeholder": "Enter amount",
+            "step": "0.01"
+        })
+    )
+
+from django import forms
+from .models import WithdrawalRequest
+
+class WithdrawalRequestForm(forms.ModelForm):
+
+    to_address = forms.ChoiceField(
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-select form-select-lg'})
+    )
+
+    class Meta:
+        model = WithdrawalRequest
+        fields = ['amount', 'chain', 'to_address']
+        widgets = {
+            'amount': forms.NumberInput(attrs={'class': 'form-control form-control-lg'}),
+            'chain': forms.Select(attrs={'class': 'form-select form-select-lg'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user')  # get logged-in user
+        super().__init__(*args, **kwargs)
+
+        profile = getattr(user, "profile", None)
+        choices = []
+
+        if profile:
+            if profile.bitcoin_id:
+                choices.append(("bitcoin:" + profile.bitcoin_id, f"BTC — {profile.bitcoin_id}"))
+            if profile.ethereum_id:
+                choices.append(("ethereum:" + profile.ethereum_id, f"ETH — {profile.ethereum_id}"))
+            if profile.usdt_trc20_id:
+                choices.append(("usdt_trc20:" + profile.usdt_trc20_id, f"USDT (TRC20) — {profile.usdt_trc20_id}"))
+            if profile.tron_id:
+                choices.append(("tron:" + profile.tron_id, f"TRON — {profile.tron_id}"))
+            if profile.bep20_id:
+                choices.append(("bep20:" + profile.bep20_id, f"BEP20 — {profile.bep20_id}"))
+
+        # fallback if no wallet
+        if not choices:
+            choices = [("", "No wallet IDs found — update profile!")]
+
+        self.fields['to_address'].choices = choices

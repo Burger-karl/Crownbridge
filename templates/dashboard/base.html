@@ -30,6 +30,152 @@
   <!-- Template Main CSS File -->
   <link href="{% static 'assets/css/style.css' %}" rel="stylesheet">
 
+
+    <!-- Hidden Google Translate container -->
+    <div id="google_translate_element" style="display:none;"></div>
+
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'af,sq,am,ar,hy,az,eu,be,bn,bg,ca,ceb,zh-CN,zh-TW,co,hr,cs,da,nl,en,eo,et,fi,fr,fy,gl,ka,de,el,gu,ht,ha,haw,iw,hi,hmn,hu,is,ig,id,ga,it,ja,jw,kn,kk,km,rw,ko,ku,ky,lo,la,lv,lt,lb,mk,mg,ms,ml,mt,mi,mr,mn,my,ne,no,ny,ps,fa,pl,pt,pa,ro,ru,sm,gd,sr,st,si,sk,sl,so,es,su,sw,sv,tl,tg,ta,tt,te,th,tr,tk,uk,ur,ug,uz,vi,cy,xh,yi,yo,zu',
+                autoDisplay: false
+            }, 'google_translate_element');
+        
+            const languageMap = {
+                "af": "Afrikaans", "sq": "Albanian", "am": "Amharic", "ar": "Arabic", "hy": "Armenian", "az": "Azerbaijani",
+                "eu": "Basque", "be": "Belarusian", "bn": "Bengali", "bg": "Bulgarian", "ca": "Catalan", "ceb": "Cebuano",
+                "zh-CN": "Chinese (Simplified)",
+                "zh-TW": "Chinese (Traditional)",
+                "co": "Corsican",
+                "hr": "Croatian",
+                "cs": "Czech",
+                "da": "Danish",
+                "nl": "Dutch",
+                "en": "English",
+                "eo": "Esperanto",
+                "et": "Estonian",
+                "fi": "Finnish",
+                "fr": "French",
+                "fy": "Frisian",
+                "gl": "Galician",
+                "ka": "Georgian",
+                "de": "German",
+                "el": "Greek",
+                "gu": "Gujarati",
+                "ht": "Haitian Creole",
+                "ha": "Hausa",
+                "haw": "Hawaiian",
+                "iw": "Hebrew",
+                "hi": "Hindi",
+                "hmn": "Hmong",
+                "hu": "Hungarian",
+                "is": "Icelandic",
+                "ig": "Igbo",
+                "id": "Indonesian",
+                "ga": "Irish",
+                "it": "Italian",
+                "ja": "Japanese",
+                "jw": "Javanese",
+                "kn": "Kannada",
+                "kk": "Kazakh",
+                "km": "Khmer",
+                "rw": "Kinyarwanda",
+                "ko": "Korean",
+                "ku": "Kurdish",
+                "ky": "Kyrgyz",
+                "lo": "Lao",
+                "la": "Latin",
+                "lv": "Latvian",
+                "lt": "Lithuanian",
+                "lb": "Luxembourgish",
+                "mk": "Macedonian",
+                "mg": "Malagasy",
+                "ms": "Malay",
+                "ml": "Malayalam",
+                "mt": "Maltese",
+                "mi": "Maori",
+                "mr": "Marathi",
+                "mn": "Mongolian",
+                "my": "Myanmar (Burmese)",
+                "ne": "Nepali",
+                "no": "Norwegian",
+                "ny": "Nyanja (Chichewa)",
+                "ps": "Pashto",
+                "fa": "Persian",
+                "pl": "Polish",
+                "pt": "Portuguese",
+                "pa": "Punjabi",
+                "ro": "Romanian",
+                "ru": "Russian",
+                "sm": "Samoan",
+                "gd": "Scots Gaelic",
+                "sr": "Serbian",
+                "st": "Sesotho",
+                "si": "Sinhala",
+                "sk": "Slovak",
+                "sl": "Slovenian",
+                "so": "Somali",
+                "es": "Spanish",
+                "su": "Sundanese",
+                "sw": "Swahili",
+                "sv": "Swedish",
+                "tl": "Tagalog (Filipino)",
+                "tg": "Tajik",
+                "ta": "Tamil",
+                "tt": "Tatar",
+                "te": "Telugu",
+                "th": "Thai",
+                "tr": "Turkish",
+                "tk": "Turkmen",
+                "uk": "Ukrainian",
+                "ur": "Urdu",
+                "ug": "Uyghur",
+                "uz": "Uzbek",
+                "vi": "Vietnamese",
+                "cy": "Welsh",
+                "xh": "Xhosa",
+                "yi": "Yiddish",
+                "yo": "Yoruba",
+                "zu": "Zulu"
+            };
+
+
+            // Auto-fill dropdown after Google loads
+            function populateLanguageDropdown() {
+                let dropdown = document.getElementById("languageSelector");
+                if (!dropdown) return;
+
+                let included = "af,sq,am,ar,hy,az,eu,be,bn,bg,ca,ceb,zh-CN,zh-TW,co,hr,cs,da,nl,en,eo,et,fi,fr,fy,gl,ka,de,el,gu,ht,ha,haw,iw,hi,hmn,hu,is,ig,id,ga,it,ja,jw,kn,kk,km,rw,ko,ku,ky,lo,la,lv,lt,lb,mk,mg,ms,ml,mt,mi, mr,mn,my,ne,no,ny,ps,fa,pl,pt,pa,ro,ru,sm,gd,sr,st,si,sk,sl,so,es,su,sw,sv,tl,tg,ta,tt,te,th,tr,tk,uk,ur,ug,uz,vi,cy,xh,yi,yo,zu";
+
+                let languageList = included.split(",");
+
+                dropdown.innerHTML = ""; // Clear existing
+
+                languageList.forEach(code => {
+                    let option = document.createElement("option");
+                    option.value = code.trim();
+                    option.textContent = languageMap[code.trim()] || code.toUpperCase();
+                    if (code === "en") option.selected = true; // default EN
+                    dropdown.appendChild(option);
+                });
+            }
+
+            // Run after Google Translate widget loads
+            setTimeout(populateLanguageDropdown, 1500);
+        }
+
+        // Custom function to trigger translation
+        function changeLanguage(langCode) {
+            const translateCombo = document.querySelector(".goog-te-combo");
+            if (translateCombo) {
+                translateCombo.value = langCode;
+                translateCombo.dispatchEvent(new Event("change"));
+            }
+        }
+    </script>
+
+
 </head>
 
 <body id="body">
@@ -39,8 +185,8 @@
 
         <div class="d-flex align-items-center justify-content-between">
             <a href="#" class="logo d-flex align-items-center">
-                <img src="{% static 'assets/img/surge-seven-3.png' %}" alt="">
-                <span class="d-none d-lg-block">SurgeSeven</span>
+                <img src="{% static 'assets/img/logoe.png' %}" alt="">
+                <span class="d-none text-warning d-lg-block">CrownBridge</span>
             </a>
             <i class="bi bi-list toggle-sidebar-btn"></i>
         </div><!-- End Logo -->
@@ -48,13 +194,19 @@
         <nav class="header-nav ms-auto">
             <ul class="d-flex align-items-center">
 
-                <li class="nav-item d-block d-lg-none">
-                    <a class="nav-link nav-icon search-bar-toggle " href="#">
-                        <i class="bi bi-search"></i>
-                    </a>
-                </li><!-- End Search Icon-->
+                <li class="nav-item d-flex align-items-center" style="margin-left: 10px;">
+                    <select 
+                        id="languageSelector"
+                        onchange="changeLanguage(this.value)"
+                        class="form-select form-select-sm"
+                        style="width: 70px; padding: 3px; font-size: 13px; border-radius: 5px;"
+                    >
+                        <option>Loading…</option>
+                    </select>
+                </li>
 
                 <li class="nav-item dropdown">
+
 
                     <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown">
                         <i class="bi bi-bell"></i>
@@ -67,13 +219,13 @@
                 <li class="nav-item dropdown pe-3">
 
                     <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
-                        <span class="d-none d-md-block dropdown-toggle ps-2">{{ request.user.full_name }}</span>
+                        <img src="{% static 'assets/img/avatar2.jpg' %}" alt="Profile" class="rounded-circle">
+                        <span class="d-none d-md-block dropdown-toggle ps-2">{{ profile.firstname }}</span>
                     </a><!-- End Profile Iamge Icon -->
 
                     <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
                         <li class="dropdown-header">
-                            <h6>{{ profile.full_name }}</h6>
-                            <span>{{ profile.phone_number }}</span>
+                            <h6>{{ profile.firstname }}</h6>
                         </li>
                         <li>
                             <hr class="dropdown-divider">
@@ -166,7 +318,7 @@
     <!-- ======= Footer ======= -->
     <footer id="footer" class="footer">
         <div class="copyright">
-            &copy; Copyright <strong><span>SurgeSeven</span></strong>. All Rights Reserved
+            &copy; Copyright <strong><span>CrownBridge</span></strong>. All Rights Reserved
         </div>
         <div class="credits">
       Designed by <a href="#">Charles</a>
@@ -186,6 +338,9 @@
     <script src="{% static 'assets/vendor/simple-datatables/simple-datatables.js' %}"></script>
     <script src="{% static 'assets/vendor/tinymce/tinymce.min.js' %}"></script>
     <script src="{% static 'assets/vendor/php-email-form/validate.js' %}"></script>
+
+   <!-- Google Translate Script -->
+    <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
     <!-- Template Main JS File -->
     <script src="{% static 'assets/js/script.js' %}"></script>

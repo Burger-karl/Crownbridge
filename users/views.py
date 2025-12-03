@@ -94,7 +94,7 @@ def login_view(request):
 
                 login(request, user)
                 messages.success(request, f"Welcome back {user.full_name or user.email}!")
-                return redirect("home")  # Change to your homepage
+                return redirect("user_dashboard")  # Change to your homepage
             else:
                 messages.error(request, "Invalid credentials")
     else:

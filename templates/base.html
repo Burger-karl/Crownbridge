@@ -43,6 +43,155 @@
     </script>
 
 
+    <!-- Hidden Google Translate container -->
+    <div id="google_translate_element" style="display:none;"></div>
+
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'af,sq,am,ar,hy,az,eu,be,bn,bg,ca,ceb,zh-CN,zh-TW,co,hr,cs,da,nl,en,eo,et,fi,fr,fy,gl,ka,de,el,gu,ht,ha,haw,iw,hi,hmn,hu,is,ig,id,ga,it,ja,jw,kn,kk,km,rw,ko,ku,ky,lo,la,lv,lt,lb,mk,mg,ms,ml,mt,mi,mr,mn,my,ne,no,ny,ps,fa,pl,pt,pa,ro,ru,sm,gd,sr,st,si,sk,sl,so,es,su,sw,sv,tl,tg,ta,tt,te,th,tr,tk,uk,ur,ug,uz,vi,cy,xh,yi,yo,zu',
+                autoDisplay: false
+            }, 'google_translate_element');
+        
+            const languageMap = {
+                "af": "Afrikaans", "sq": "Albanian", "am": "Amharic", "ar": "Arabic", "hy": "Armenian", "az": "Azerbaijani",
+                "eu": "Basque", "be": "Belarusian", "bn": "Bengali", "bg": "Bulgarian", "ca": "Catalan", "ceb": "Cebuano",
+                "zh-CN": "Chinese (Simplified)",
+                "zh-TW": "Chinese (Traditional)",
+                "co": "Corsican",
+                "hr": "Croatian",
+                "cs": "Czech",
+                "da": "Danish",
+                "nl": "Dutch",
+                "en": "English",
+                "eo": "Esperanto",
+                "et": "Estonian",
+                "fi": "Finnish",
+                "fr": "French",
+                "fy": "Frisian",
+                "gl": "Galician",
+                "ka": "Georgian",
+                "de": "German",
+                "el": "Greek",
+                "gu": "Gujarati",
+                "ht": "Haitian Creole",
+                "ha": "Hausa",
+                "haw": "Hawaiian",
+                "iw": "Hebrew",
+                "hi": "Hindi",
+                "hmn": "Hmong",
+                "hu": "Hungarian",
+                "is": "Icelandic",
+                "ig": "Igbo",
+                "id": "Indonesian",
+                "ga": "Irish",
+                "it": "Italian",
+                "ja": "Japanese",
+                "jw": "Javanese",
+                "kn": "Kannada",
+                "kk": "Kazakh",
+                "km": "Khmer",
+                "rw": "Kinyarwanda",
+                "ko": "Korean",
+                "ku": "Kurdish",
+                "ky": "Kyrgyz",
+                "lo": "Lao",
+                "la": "Latin",
+                "lv": "Latvian",
+                "lt": "Lithuanian",
+                "lb": "Luxembourgish",
+                "mk": "Macedonian",
+                "mg": "Malagasy",
+                "ms": "Malay",
+                "ml": "Malayalam",
+                "mt": "Maltese",
+                "mi": "Maori",
+                "mr": "Marathi",
+                "mn": "Mongolian",
+                "my": "Myanmar (Burmese)",
+                "ne": "Nepali",
+                "no": "Norwegian",
+                "ny": "Nyanja (Chichewa)",
+                "ps": "Pashto",
+                "fa": "Persian",
+                "pl": "Polish",
+                "pt": "Portuguese",
+                "pa": "Punjabi",
+                "ro": "Romanian",
+                "ru": "Russian",
+                "sm": "Samoan",
+                "gd": "Scots Gaelic",
+                "sr": "Serbian",
+                "st": "Sesotho",
+                "si": "Sinhala",
+                "sk": "Slovak",
+                "sl": "Slovenian",
+                "so": "Somali",
+                "es": "Spanish",
+                "su": "Sundanese",
+                "sw": "Swahili",
+                "sv": "Swedish",
+                "tl": "Tagalog (Filipino)",
+                "tg": "Tajik",
+                "ta": "Tamil",
+                "tt": "Tatar",
+                "te": "Telugu",
+                "th": "Thai",
+                "tr": "Turkish",
+                "tk": "Turkmen",
+                "uk": "Ukrainian",
+                "ur": "Urdu",
+                "ug": "Uyghur",
+                "uz": "Uzbek",
+                "vi": "Vietnamese",
+                "cy": "Welsh",
+                "xh": "Xhosa",
+                "yi": "Yiddish",
+                "yo": "Yoruba",
+                "zu": "Zulu"
+            };
+
+
+            // Auto-fill dropdown after Google loads
+            function populateLanguageDropdown() {
+                let dropdown = document.getElementById("languageSelector");
+                if (!dropdown) return;
+
+                let included = "af,sq,am,ar,hy,az,eu,be,bn,bg,ca,ceb,zh-CN,zh-TW,co,hr,cs,da,nl,en,eo,et,fi,fr,fy,gl,ka,de,el,gu,ht,ha,haw,iw,hi,hmn,hu,is,ig,id,ga,it,ja,jw,kn,kk,km,rw,ko,ku,ky,lo,la,lv,lt,lb,mk,mg,ms,ml,mt,mi, mr,mn,my,ne,no,ny,ps,fa,pl,pt,pa,ro,ru,sm,gd,sr,st,si,sk,sl,so,es,su,sw,sv,tl,tg,ta,tt,te,th,tr,tk,uk,ur,ug,uz,vi,cy,xh,yi,yo,zu";
+
+                let languageList = included.split(",");
+
+                dropdown.innerHTML = ""; // Clear existing
+
+                languageList.forEach(code => {
+                    let option = document.createElement("option");
+                    option.value = code.trim();
+                    option.textContent = languageMap[code.trim()] || code.toUpperCase();
+                    if (code === "en") option.selected = true; // default EN
+                    dropdown.appendChild(option);
+                });
+            }
+
+            // Run after Google Translate widget loads
+            setTimeout(populateLanguageDropdown, 1500);
+        }
+
+        // Custom function to trigger translation
+        function changeLanguage(langCode) {
+            const translateCombo = document.querySelector(".goog-te-combo");
+            if (translateCombo) {
+                translateCombo.value = langCode;
+                translateCombo.dispatchEvent(new Event("change"));
+            }
+        }
+    </script>
+
+
+
+
+
+
 </head>
 
 <body class="index-page">
@@ -91,17 +240,28 @@
 
             <nav id="navmenu" class="navmenu">
                 <ul>
-                <li><a href="#hero" class="active">Home</a></li>
-                <li><a href="#about">About</a></li>
-                {% if user.is_authenticated %}
-                <li><a href="{% url 'user_dashboard' %}">Dashboard</a></li>
-                <li><a href="{% url 'profile' %}">Profile</a></li>
-                {% if user.is_staff or user.is_superuser %}
-                <li><a href="{% url 'payment:admin_pending_withdrawals' %}">Withdrawals</a></li>
-                <li><a href="{% url 'kyc:admin_kyc_list' %}">KYC</a></li>
-                {% endif %}
-                <li><a href="#contact">Contact</a></li>
-                {% endif %}
+                    <li><a href="#hero" class="active">Home</a></li>
+                    <li><a href="#about">About</a></li>
+                    {% if user.is_authenticated %}
+                    <li><a href="{% url 'user_dashboard' %}">Dashboard</a></li>
+                    <li><a href="{% url 'profile' %}">Profile</a></li>
+                    {% if user.is_staff or user.is_superuser %}
+                    <li><a href="{% url 'payment:admin_pending_withdrawals' %}">Withdrawals</a></li>
+                    <li><a href="{% url 'kyc:admin_kyc_list' %}">KYC</a></li>
+                    {% endif %}
+                    <li><a href="#contact">Contact</a></li>
+                    {% endif %}
+                    <li class="nav-item d-flex align-items-center" style="margin-left: 10px;">
+                        <select 
+                            id="languageSelector"
+                            onchange="changeLanguage(this.value)"
+                            class="form-select form-select-sm"
+                            style="width: 70px; padding: 3px; font-size: 13px; border-radius: 5px;"
+                        >
+                            <option>Loading…</option>
+                        </select>
+                    </li>
+
                 </ul>
                 <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
             </nav>
@@ -326,6 +486,9 @@
   <script src="{% static 'assets/vendor/imagesloaded/imagesloaded.pkgd.min.js' %}"></script>
   <script src="{% static 'assets/vendor/isotope-layout/isotope.pkgd.min.js' %}"></script>
   <script src="{% static 'assets/vendor/glightbox/js/glightbox.min.js' %}"></script>
+
+    <!-- Google Translate Script -->
+    <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
   <!-- Main JS File -->
   <script src="{% static 'assets/js/main.js' %}"></script>

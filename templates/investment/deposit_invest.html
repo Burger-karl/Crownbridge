@@ -1,6 +1,6 @@
-{% extends "dashboard/base.html" %}
+{% extends 'dashboard/base.html' %}
 {% load static %}
-{% block title %}Withdraw Funds{% endblock %}
+{% block title %}Invest Page{% endblock title %}
 
 {% block banner-slider %}
 <!-- Sidebar -->
@@ -112,100 +112,116 @@
 </aside>
 {% endblock banner-slider %}
 
-
 {% block main-content %}
 
 <div class="pagetitle">
   <h1>Dashboard</h1>
   <nav>
     <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="index.html">Dashboard</a></li>
-      <li class="breadcrumb-item active">Withdraw request</li>
+      <li class="breadcrumb-item"><a href="index.html">Investment</a></li>
+      <li class="breadcrumb-item active">Deposit Invest</li>
     </ol>
   </nav>
 </div><!-- End Page Title -->
 
 <div class="container py-5">
   <div class="row justify-content-center">
-    <div class="col-lg-8 col-md-10">
-      <div class="card shadow-lg border-0 rounded-4 p-4">
+    <div class="col-lg-7">
+      <div class="card shadow-sm p-4">
 
-        <!-- Card Header -->
-        <h4 class="mb-4 text-center text-primary fw-bold">Withdraw Funds</h4>
-
-        <!-- Summary Cards -->
-        <div class="row g-3 mb-4 text-center">
-          <div class="col-md-4">
-            <div class="p-3 border rounded-3 bg-light shadow-sm">
-              <h6 class="fw-semibold text-muted">Available Balance</h6>
-              <p class="h4 text-success mb-0">${{ user_balance }}</p>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="p-3 border rounded-3 bg-light shadow-sm">
-              <h6 class="fw-semibold text-muted">Total Invested</h6>
-              <p class="h5 text-primary mb-0">${{ total_invested }}</p>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="p-3 border rounded-3 bg-light shadow-sm">
-              <h6 class="fw-semibold text-muted">Expected Profit</h6>
-              <p class="h5 text-warning mb-0">${{ total_expected_profit }}</p>
-            </div>
-          </div>
+        <div class="text-center mb-3">
+          <h4 class="mb-1">Deposit to Invest - {{ plan.name }}</h4>
+          <p class="text-muted mb-0">Fill the form below to create a deposit intent for this investment plan.</p>
         </div>
 
-        <!-- Withdrawal Form -->
-        <form method="post" class="mt-3">
-          {% csrf_token %}
-          
-          <div class="mb-3">
-            {{ form.amount.label_tag }}
-            {{ form.amount }}
-            {% if form.amount.errors %}
-              <div class="text-danger small mt-1">{{ form.amount.errors }}</div>
-            {% endif %}
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+
+        {% if intent_created %}
+          <!-- Show deposit instruction and details -->
+          <div class="alert alert-success">
+            <strong>Intent created.</strong>
+            Send <strong>${{ intent.amount|floatformat:2 }}</strong> using the selected wallet to the receiver address below.
           </div>
 
           <div class="mb-3">
-            {{ form.chain.label_tag }}
-            {{ form.chain }}
-            {% if form.chain.errors %}
-              <div class="text-danger small mt-1">{{ form.chain.errors }}</div>
-            {% endif %}
+            <label class="form-label">Receiver (Platform) Address</label>
+            <div class="input-group">
+              <input class="form-control" readonly value="{{ platform_receiver }}">
+              <button class="btn btn-outline-secondary" onclick="navigator.clipboard.writeText('{{ platform_receiver }}')">Copy</button>
+            </div>
+            <small class="text-muted d-block mt-1">Use this address as the destination. After broadcasting the transaction, you'll confirm via your admin/command tool.</small>
           </div>
 
           <div class="mb-3">
-            {{ form.to_address.label_tag }}
-            {{ form.to_address }}
-            {% if form.to_address.errors %}
-              <div class="text-danger small mt-1">{{ form.to_address.errors }}</div>
-            {% endif %}
+            <label class="form-label">Amount</label>
+            <div class="fw-bold">${{ intent.amount|floatformat:2 }}</div>
           </div>
 
-          <div class="d-grid">
-            <button class="btn btn-primary btn-lg shadow-sm" type="submit">
-              <i class="bi bi-cash-stack me-2"></i> Process Withdrawal
-            </button>
+          <div class="mb-3">
+            <label class="form-label">Chain</label>
+            <div class="fw-bold">{{ intent.chain }}</div>
           </div>
-        </form>
 
+          <div class="mb-3">
+            <label class="form-label">From (your wallet)</label>
+            <div class="fw-bold">{{ selected_wallet_value }}</div>
+          </div>
+
+          <div class="d-flex gap-2">
+            <a href="{% url 'investment:invest_page' plan.id %}" class="btn btn-secondary">Back to Invest</a>
+            <a href="#" class="btn btn-primary" onclick="alert('When you have sent the funds, run your confirm command to mark the deposit as confirmed.')">I have sent funds</a>
+          </div>
+
+        {% else %}
+          <!-- The deposit form -->
+          <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label class="form-label">Amount (USD)</label>
+              <input type="number" step="0.01" name="amount" class="form-control" required min="{{ plan.min_deposit }}"
+                     {% if plan.max_deposit %} max="{{ plan.max_deposit }}" {% endif %}>
+              <div class="form-text">Minimum: ${{ plan.min_deposit }}{% if plan.max_deposit %}, Maximum: ${{ plan.max_deposit }}{% endif %}</div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Chain</label>
+              <select name="chain" class="form-select" required>
+                {% for code, label in chain_choices %}
+                  <option value="{{ code }}">{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">From Wallet (your saved wallet IDs)</label>
+              {% if user_wallets %}
+                <select name="user_wallet_field" class="form-select" required>
+                  {% for field, val, label in user_wallets %}
+                    <option value="{{ field }}">{{ label }} — {{ val }}</option>
+                  {% endfor %}
+                </select>
+              {% else %}
+                <div class="alert alert-warning">You have no saved wallet IDs. Add them in your profile before attempting to deposit from an external wallet.</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Receiver (Platform) Address</label>
+              <input class="form-control" readonly value="{{ platform_receiver }}">
+              <div class="form-text">Send the exact amount to this receiver address. After sending, your deposit will remain pending until your admin/command marks it confirmed.</div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary">Create Deposit Intent</button>
+              <a href="{% url 'investment:invest_page' plan.id %}" class="btn btn-secondary">Cancel</a>
+            </div>
+          </form>
+        {% endif %}
       </div>
     </div>
   </div>
 </div>
-
-<style>
-  .card:hover {
-    transform: translateY(-2px);
-    transition: all 0.3s ease-in-out;
-  }
-  .form-control, .form-select {
-    border-radius: 0.5rem;
-    transition: box-shadow 0.2s ease-in-out;
-  }
-  .form-control:focus, .form-select:focus {
-    box-shadow: 0 0 0 0.25rem rgba(13,110,253,0.25);
-  }
-</style>
 {% endblock %}
+

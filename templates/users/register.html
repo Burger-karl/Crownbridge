@@ -1,4 +1,4 @@
-{% extends "users/base.html" %}
+{% extends "base.html" %}
 {% block title %}Register{% endblock %}
 
 {% block banner-slider %}
@@ -20,6 +20,8 @@
         {% csrf_token %}
         {{ form.as_p }}
         <input type="hidden" name="referral_code" value="{{ referral_code }}">
+        
+
         <div class="d-grid">
           <button type="submit" class="btn btn-primary">Register</button>
         </div>

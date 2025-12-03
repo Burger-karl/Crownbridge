@@ -84,7 +84,15 @@ class Profile(models.Model):
     email = models.EmailField(blank=True)
     avatar = models.ImageField(upload_to="avatars/", default=default_avatar)
 
+    # NEW CRYPTO FIELDS
+    bitcoin_id = models.CharField(max_length=255, blank=True, null=True)
+    ethereum_id = models.CharField(max_length=255, blank=True, null=True)
+    usdt_trc20_id = models.CharField(max_length=255, blank=True, null=True)
+    tron_id = models.CharField(max_length=255, blank=True, null=True)
+    bep20_id = models.CharField(max_length=255, blank=True, null=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
+
 
     def __str__(self):
         return f"{self.user.email} Profile"

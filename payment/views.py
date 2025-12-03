@@ -18,34 +18,24 @@ def is_staff(user):
 
 @login_required
 def withdraw_page(request):
-    """
-    Show withdrawal form displaying user's invested totals and profit summary.
-    On POST create WithdrawalRequest with status 'pending' and notify user.
-    """
-    # calculate totals (you might want to refine to separate profit vs principal)
-    # We'll compute 'total_invested' and 'total_profit' from UserInvestment if available
-    try:
-        from investment.models import UserInvestment
-        investments = UserInvestment.objects.filter(user=request.user)
-        total_invested = sum((inv.amount_invested for inv in investments), Decimal('0.00'))
-        # expected profit sum (calculated)
-        total_expected_profit = sum((inv.calculate_expected_profit() for inv in investments), Decimal('0.00'))
-    except Exception:
-        total_invested = Decimal('0.00')
-        total_expected_profit = Decimal('0.00')
+    from investment.models import UserInvestment
+    investments = UserInvestment.objects.filter(user=request.user)
 
-    # user balance available for withdrawal
+    total_invested = sum((inv.amount_invested for inv in investments), Decimal("0"))
+    total_expected_profit = sum((inv.calculate_expected_profit() for inv in investments), Decimal("0"))
+
     ub, _ = UserBalance.objects.get_or_create(user=request.user)
 
     if request.method == "POST":
-        form = WithdrawalRequestForm(request.POST)
+        form = WithdrawalRequestForm(request.POST, user=request.user)
         if form.is_valid():
             amount = form.cleaned_data["amount"]
-            to_address = form.cleaned_data["to_address"]
             chain = form.cleaned_data["chain"]
 
-            # basic validations
-            if amount <= Decimal("0.0"):
+            # extract raw wallet value after prefix removal
+            to_address_raw = form.cleaned_data["to_address"].split(":", 1)[1]
+
+            if amount <= Decimal("0"):
                 messages.error(request, "Enter a valid amount.")
                 return redirect("payment:withdraw")
 
@@ -53,26 +43,24 @@ def withdraw_page(request):
                 messages.error(request, "Insufficient balance for withdrawal.")
                 return redirect("payment:withdraw")
 
-            # create withdrawal request (pending)
-            wr = WithdrawalRequest.objects.create(
+            WithdrawalRequest.objects.create(
                 user=request.user,
                 amount=amount,
-                to_address=to_address,
                 chain=chain,
-                status="pending",
+                to_address=to_address_raw,
+                status="pending"
             )
-            messages.success(request, "Withdrawal submitted — processing. Await admin approval.")
+            messages.success(request, "Withdrawal submitted — processing.")
             return redirect("payment:withdrawals")
     else:
-        form = WithdrawalRequestForm(initial={"chain": "ethereum"})
+        form = WithdrawalRequestForm(initial={"chain": "ethereum"}, user=request.user)
 
-    context = {
+    return render(request, "payment/withdrawal_request.html", {
         "form": form,
         "total_invested": total_invested,
         "total_expected_profit": total_expected_profit,
         "user_balance": ub.balance,
-    }
-    return render(request, "payment/withdrawal_request.html", context)
+    })
 
 
 @login_required
@@ -277,9 +265,10 @@ def transfer_page(request):
     user_balance = None
     try:
         ub, _ = UserBalance.objects.get_or_create(user=request.user)
-        user_balance = ub.balance
+        user_balance = f"{ub.balance:,.2f}"    # formatted balance
     except Exception:
-        user_balance = Decimal('0.0')
+        user_balance = "0.00"
+
 
     return render(request, 'payment/transfer_page.html', {'form': form, 'user_balance': user_balance})
 
@@ -347,3 +336,47 @@ def p2p_transfer_view(request):
         form = P2PTransferForm()
 
     return render(request, "payment/p2p_transfer.html", {"form": form})
+
+
+# views.py
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.db.models import Q
+from payment.models import Deposit, WithdrawalRequest, P2PTransfer
+from django.core.paginator import Paginator
+
+@login_required
+def transaction_history_view(request):
+    user = request.user
+
+    # Combine deposits, withdrawals, P2P transfers into one list
+    deposits = Deposit.objects.filter(user=user).annotate(
+        tx_type=models.Value("Deposit", output_field=models.CharField())
+    )
+
+    withdrawals = WithdrawalRequest.objects.filter(user=user).annotate(
+        tx_type=models.Value("Withdrawal", output_field=models.CharField())
+    )
+
+    sent_transfers = P2PTransfer.objects.filter(sender=user).annotate(
+        tx_type=models.Value("P2P Sent", output_field=models.CharField())
+    )
+
+    received_transfers = P2PTransfer.objects.filter(receiver=user).annotate(
+        tx_type=models.Value("P2P Received", output_field=models.CharField())
+    )
+
+    # Merge them into a single queryset-like list
+    transactions = list(deposits) + list(withdrawals) + list(sent_transfers) + list(received_transfers)
+
+    # Sort by date
+    transactions.sort(key=lambda x: getattr(x, "created_at", None) or getattr(x, "processed_at", None), reverse=True)
+
+    # Pagination
+    paginator = Paginator(transactions, 10)
+    page_number = request.GET.get("page")
+    tx_page_obj = paginator.get_page(page_number)
+
+    return render(request, "payment/transaction_history.html", {
+        "tx_page_obj": tx_page_obj
+    })

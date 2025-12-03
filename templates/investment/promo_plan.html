@@ -1,6 +1,6 @@
 {% extends "dashboard/base.html" %}
 {% load static %}
-{% block title %}Withdraw Funds{% endblock %}
+{% block title %}Deposit Instructions{% endblock title %}
 
 {% block banner-slider %}
 <!-- Sidebar -->
@@ -112,100 +112,52 @@
 </aside>
 {% endblock banner-slider %}
 
-
 {% block main-content %}
 
-<div class="pagetitle">
-  <h1>Dashboard</h1>
-  <nav>
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="index.html">Dashboard</a></li>
-      <li class="breadcrumb-item active">Withdraw request</li>
-    </ol>
-  </nav>
-</div><!-- End Page Title -->
-
 <div class="container py-5">
-  <div class="row justify-content-center">
-    <div class="col-lg-8 col-md-10">
-      <div class="card shadow-lg border-0 rounded-4 p-4">
 
-        <!-- Card Header -->
-        <h4 class="mb-4 text-center text-primary fw-bold">Withdraw Funds</h4>
+    <div class="pagetitle">
+        <h1>Dashboard</h1>
+        <nav>
+            <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="index.html">Dashboard</a></li>
+            <li class="breadcrumb-item active">Promo Plan</li>
+            </ol>
+        </nav>
+    </div><!-- End Page Title -->
 
-        <!-- Summary Cards -->
-        <div class="row g-3 mb-4 text-center">
-          <div class="col-md-4">
-            <div class="p-3 border rounded-3 bg-light shadow-sm">
-              <h6 class="fw-semibold text-muted">Available Balance</h6>
-              <p class="h4 text-success mb-0">${{ user_balance }}</p>
+
+    {% if plan %}
+    <div class="card shadow-lg">
+        <div class="card-body text-center">
+            <h2 class="fw-bold text-primary">{{ plan.name }} Plan</h2>
+
+            <p class="mt-3">
+                <strong>Profit:</strong> {{ plan.profit_percent }}% <br>
+                <strong>Duration:</strong> {{ plan.duration_hours }} hours <br>
+                <strong>Min Deposit:</strong> ${{ plan.min_deposit }} <br>
+                <strong>Max Deposit:</strong> {{ plan.max_deposit|default:"Unlimited" }}
+            </p>
+
+            <div class="mt-4">
+                <a href="{% url 'investment:invest_page' plan.id %}"
+                   class="btn btn-success btn-lg">
+                   Invest Now
+                </a>
+
+                <a href="{% url 'investment:deposit_invest' plan.id %}"
+                   class="btn btn-outline-primary btn-lg ms-2">
+                   Deposit to Invest
+                </a>
             </div>
-          </div>
-          <div class="col-md-4">
-            <div class="p-3 border rounded-3 bg-light shadow-sm">
-              <h6 class="fw-semibold text-muted">Total Invested</h6>
-              <p class="h5 text-primary mb-0">${{ total_invested }}</p>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="p-3 border rounded-3 bg-light shadow-sm">
-              <h6 class="fw-semibold text-muted">Expected Profit</h6>
-              <p class="h5 text-warning mb-0">${{ total_expected_profit }}</p>
-            </div>
-          </div>
         </div>
-
-        <!-- Withdrawal Form -->
-        <form method="post" class="mt-3">
-          {% csrf_token %}
-          
-          <div class="mb-3">
-            {{ form.amount.label_tag }}
-            {{ form.amount }}
-            {% if form.amount.errors %}
-              <div class="text-danger small mt-1">{{ form.amount.errors }}</div>
-            {% endif %}
-          </div>
-
-          <div class="mb-3">
-            {{ form.chain.label_tag }}
-            {{ form.chain }}
-            {% if form.chain.errors %}
-              <div class="text-danger small mt-1">{{ form.chain.errors }}</div>
-            {% endif %}
-          </div>
-
-          <div class="mb-3">
-            {{ form.to_address.label_tag }}
-            {{ form.to_address }}
-            {% if form.to_address.errors %}
-              <div class="text-danger small mt-1">{{ form.to_address.errors }}</div>
-            {% endif %}
-          </div>
-
-          <div class="d-grid">
-            <button class="btn btn-primary btn-lg shadow-sm" type="submit">
-              <i class="bi bi-cash-stack me-2"></i> Process Withdrawal
-            </button>
-          </div>
-        </form>
-
-      </div>
     </div>
-  </div>
+
+    {% else %}
+    <div class="alert alert-danger text-center">
+        Promo plan not available.
+    </div>
+    {% endif %}
 </div>
 
-<style>
-  .card:hover {
-    transform: translateY(-2px);
-    transition: all 0.3s ease-in-out;
-  }
-  .form-control, .form-select {
-    border-radius: 0.5rem;
-    transition: box-shadow 0.2s ease-in-out;
-  }
-  .form-control:focus, .form-select:focus {
-    box-shadow: 0 0 0 0.25rem rgba(13,110,253,0.25);
-  }
-</style>
 {% endblock %}

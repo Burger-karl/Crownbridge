@@ -3929,9 +3929,6 @@ section,
 /*--------------------------------------------------------------
 # Starter Section Section
 --------------------------------------------------------------*/
-.starter-section {
-  /* Add your styles here */
-}
 
 /*--------------------------------------------------------------
 # Blog Posts Section
@@ -4892,4 +4889,16 @@ section,
     border-radius: 8px;
     padding: 8px;
     font-size: 14px;
+}
+
+
+
+#google_translate_element {
+    margin-left: 10px;
+}
+
+.goog-te-gadget .goog-te-combo {
+    padding: 6px 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
 }

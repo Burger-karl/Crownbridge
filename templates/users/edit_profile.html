@@ -1,19 +1,93 @@
-{% extends "base.html" %}
+{% extends "dashboard/base.html" %}
 {% load static %}
 {% block title %}Edit Profile{% endblock title %}
 
 {% block banner-slider %}
-<div class="page-title">
-  <nav class="breadcrumbs">
-    <div class="container">
-      <ol>
-        <li><a href="{% url 'home' %}">Home</a></li>
-        <li class="current">Edit Profile</li>
-      </ol>
-    </div>
-  </nav>
-</div>
-{% endblock %}
+    <!-- ======= Sidebar ======= -->
+    <aside id="sidebar" class="sidebar">
+        <ul class="sidebar-nav" id="sidebar-nav">
+            <li class="nav-item">
+                <a class="nav-link active" href="{% url 'user_dashboard' %}">
+                    <i class="bi bi-grid"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li><!-- End Dashboard Nav -->
+
+            <li class="nav-heading">Pages</li>
+
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="{% url 'home' %}">
+                    <i class="bi bi-person"></i>
+                    <span>Home</span>
+                </a>
+            </li><!-- End Profile Page Nav -->
+
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="{% url 'payment:deposit' %}">
+                    <i class="bi bi-question-circle"></i>
+                    <span>Make Deposit</span>
+                </a>
+            </li><!-- End F.A.Q Page Nav -->
+
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#">
+                    <i class="bi bi-question-circle"></i>
+                    <span>Apply for Loan</span>
+                </a>
+            </li><!-- End F.A.Q Page Nav -->
+
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="{% url 'kyc:verify' %}">
+                    <i class="bi bi-question-circle"></i>
+                    <span>KYC</span>
+                </a>
+            </li><!-- End F.A.Q Page Nav -->
+
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#">
+                    <i class="bi bi-question-circle"></i>
+                    <span>Promo Plans</span>
+                </a>
+            </li><!-- End F.A.Q Page Nav -->
+      
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="{% url 'investment:investment_plans' %}">
+                    <i class="bi bi-question-circle"></i>
+                    <span>Invest</span>
+                </a>
+            </li><!-- End F.A.Q Page Nav -->
+      
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="{% url 'payment:withdraw' %}">
+                    <i class="bi bi-card-list"></i>
+                    <span>Withdraw</span>
+                </a>
+            </li><!-- End Register Page Nav -->
+
+            <li class="nav-item">
+              <a class="nav-link collapsed" href="{% url 'payment:p2ptransfer' %}">
+                  <i class="bi bi-arrow-left-right"></i>
+                  <span>P2P Transfer</span>
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link collapsed" href="{% url 'payment:transaction_history' %}">
+                  <i class="bi bi-arrow-left-right"></i>
+                  <span>Transaction History</span>
+              </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="{% url 'logout' %}">
+                    <i class="bi bi-dash-circle"></i>
+                    <span>Logout</span>
+                </a>
+            </li><!-- End Error 404 Page Nav -->
+        </ul>
+    </aside><!-- End Sidebar-->
+{% endblock banner-slider %}
+
 
 {% block main-content %}
 <div class="container py-4">
@@ -53,6 +127,33 @@
                 {{ form.avatar.label_tag }}
                 {{ form.avatar }}
             </div>
+
+            <div class="mb-3">
+                {{ form.bitcoin_id.label_tag }}
+                {{ form.bitcoin_id }}
+            </div>
+
+            <div class="mb-3">
+                {{ form.ethereum_id.label_tag }}
+                {{ form.ethereum_id }}
+            </div>
+
+            <div class="mb-3">
+                {{ form.usdt_trc20_id.label_tag }}
+                {{ form.usdt_trc20_id }}
+            </div>
+
+            <div class="mb-3">
+                {{ form.tron_id.label_tag }}
+                {{ form.tron_id }}
+            </div>
+
+            <div class="mb-3">
+                {{ form.bep20_id.label_tag }}
+                {{ form.bep20_id }}
+            </div>
+
+            
 
             <button type="submit" class="btn btn-success">Save Changes</button>
             <a href="{% url 'profile' %}" class="btn btn-secondary">Cancel</a>

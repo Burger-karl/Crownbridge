@@ -21,6 +21,7 @@ urlpatterns = [
     # Transfers
     path('transfer/', views.transfer_page, name='transfer'),
     path('transfer/history/', views.transfer_history, name='transfer_history'),
-    path("p2ptransfer/", views.p2p_transfer_view, name="p2ptransfer")
+    path("p2ptransfer/", views.p2p_transfer_view, name="p2ptransfer"),
 
+    path("transactions/", views.transaction_history_view, name="transaction_history"),
 ]
