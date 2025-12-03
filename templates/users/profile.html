@@ -56,7 +56,7 @@
 
         <!-- Promo Plans -->
         <li class="nav-item mb-1">
-            <a class="nav-link collapsed d-flex align-items-center px-3 py-2 rounded" href="#">
+            <a class="nav-link collapsed d-flex align-items-center px-3 py-2 rounded" href="{% url 'investment:promo_plan' %}">
                 <i class="bi bi-star me-2 fs-5 text-warning"></i>
                 <span>Promo Plans</span>
             </a>
@@ -132,7 +132,7 @@
           <div class="card">
             <div class="card-body profile-card pt-4 d-flex flex-column align-items-center">
 
-              <img src="{{ profile.avatar.url }}" alt="Profile" class="rounded-circle">
+              <img src="{% static 'assets/img/avatar2.jpg' %}" alt="Profile" class="rounded-circle">
               <h2>{{ profile.firstname }}</h2>
               
               <div class="social-links mt-2">
@@ -155,10 +155,6 @@
 
                 <li class="nav-item">
                   <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#profile-overview">Overview</button>
-                </li>
-
-                <li class="nav-item">
-                  <button class="nav-link" data-bs-toggle="tab" data-bs-target="#profile-edit">Edit Profile</button>
                 </li>
 
                 <li class="nav-item">
@@ -236,125 +232,10 @@
                     <div class="col-lg-9 col-md-8">{{ profile.bep20_id|default:"-" }}</div>
                   </div>
 
-
                 </div>
-
-                <div class="tab-pane fade profile-edit pt-3" id="profile-edit">
-
-                  <!-- Profile Edit Form -->
-                  <form method="POST" enctype="multipart/form-data">
-                  {% csrf_token %}
-                    <div class="row mb-3">
-                      <label for="profileImage" class="col-md-4 col-lg-3 col-form-label">Profile Image</label>
-                      <div class="col-md-8 col-lg-9">
-                        <img src="{{ profile.avatar.url }}" alt="Profile">
-                        <div class="pt-2">
-                          <a href="#" class="btn btn-primary btn-sm" title="Upload new profile image"><i class="bi bi-upload"></i></a>
-                          <a href="#" class="btn btn-danger btn-sm" title="Remove my profile image"><i class="bi bi-trash"></i></a>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="row mb-3">
-                      <label for="fullName" class="col-md-4 col-lg-3 col-form-label">First Name</label>
-                      <div class="col-md-8 col-lg-9">
-                        {{ form.firstname }}
-                      </div>
-                    </div>
-
-                    <div class="row mb-3">
-                      <label for="fullName" class="col-md-4 col-lg-3 col-form-label">Last Name</label>
-                      <div class="col-md-8 col-lg-9">
-                        
-                        {{ form.lastname.label_tag }}
-                        {{ form.lastname }}
-            
-                      </div>
-                    </div>
-
-                    <div class="row mb-3">
-                      <label for="company" class="col-md-4 col-lg-3 col-form-label">Company</label>
-                      <div class="col-md-8 col-lg-9">
-                        <input name="company" type="text" class="form-control" id="company" value="Lueilwitz, Wisoky and Leuschke">
-                      </div>
-                    </div>
-
-                    <div class="row mb-3">
-                      <label for="Job" class="col-md-4 col-lg-3 col-form-label">Job</label>
-                      <div class="col-md-8 col-lg-9">
-                        <input name="job" type="text" class="form-control" id="Job" value="Web Designer">
-                      </div>
-                    </div>
-
-                    <div class="row mb-3">
-                      <label for="Country" class="col-md-4 col-lg-3 col-form-label">Country</label>
-                      <div class="col-md-8 col-lg-9">
-                        {{ form.country }}
-                      </div>
-                    </div>
-
-                    <div class="row mb-3">
-                      <label for="Address" class="col-md-4 col-lg-3 col-form-label">Address</label>
-                      <div class="col-md-8 col-lg-9">
-                        <input name="address" type="text" class="form-control" id="Address" value="A108 Adam Street, New York, NY 535022">
-                      </div>
-                    </div>
-
-                    <div class="row mb-3">
-                      <label for="Phone" class="col-md-4 col-lg-3 col-form-label">Phone</label>
-                      <div class="col-md-8 col-lg-9">
-                        {{ form.phone }}
-                      </div>
-                    </div>
-
-                    <div class="row mb-3">
-                      <label for="Email" class="col-md-4 col-lg-3 col-form-label">Email</label>
-                      <div class="col-md-8 col-lg-9">
-                        {{ form.email }}
-                      </div>
-                    </div>
-
-                    <div class="row mb-3">
-                      <label for="Bitcoin ID" class="col-md-4 col-lg-3 col-form-label">Bitcoin ID</label>
-                      <div class="col-md-8 col-lg-9">
-                        {{ form.bitcoin_id }}
-                      </div>
-                    </div>
-
-                    <div class="row mb-3">
-                      <label for="Ethereum ID" class="col-md-4 col-lg-3 col-form-label">Ethereum ID</label>
-                      <div class="col-md-8 col-lg-9">
-                        {{ form.ethereum_id }}
-                      </div>
-                    </div>
-
-                    <div class="row mb-3">
-                      <label for="USDT ID" class="col-md-4 col-lg-3 col-form-label">USDT ID</label>
-                      <div class="col-md-8 col-lg-9">
-                        {{ form.usdt_trc20_id }}
-                      </div>
-                    </div>
-
-                    <div class="row mb-3">
-                      <label for="Tron ID" class="col-md-4 col-lg-3 col-form-label">Tron ID</label>
-                      <div class="col-md-8 col-lg-9">
-                        {{ form.tron_id }}
-                      </div>
-                    </div>
-
-                    <div class="row mb-3">
-                      <label for="Binance ID" class="col-md-4 col-lg-3 col-form-label">Binance ID</label>
-                      <div class="col-md-8 col-lg-9">
-                        {{ form.bep20_id }}
-                      </div>
-                    </div>
-
-                    <div class="text-center">
-                      <button type="submit" class="btn btn-success">Save Changes</button>
-                    </div>
-                  </form><!-- End Profile Edit Form -->
-
-                </div>
+                <a href="{% url 'edit_profile' %}" class="btn btn-outline-primary btn-lg fw-bold flex-fill text-decoration-none">
+                    <i class="bi bi-arrow-right-circle me-2"></i> Edit Profile
+                </a>
 
                 <div class="tab-pane fade pt-3" id="profile-settings">
 

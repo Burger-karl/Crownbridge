@@ -129,28 +129,67 @@
         <div class="row justify-content-center">
             <div class="col-md-7">
 
-                <div class="card shadow-lg border-0 rounded-3">
+                <div class="card shadow-lg border-0 rounded-4">
+                    
+                    <!-- HEADER -->
                     <div class="card-header bg-primary text-white py-3">
-                        <h4 class="mb-0"><i class="bi bi-wallet2 me-2"></i>Deposit Funds</h4>
+                        <h4 class="mb-0">
+                            <i class="bi bi-wallet2 me-2"></i>Deposit Funds
+                        </h4>
                     </div>
 
+                    <!-- BODY -->
                     <div class="card-body p-4">
+
                         <form method="post">
                             {% csrf_token %}
 
-                            <div class="mb-3">
-                                {{ form.as_p }}
+                            <!-- User Wallet Address Selector -->
+                            <div class="mb-4">
+                                <label class="fw-bold mb-2">Select Your Wallet (where funds will be sent from)</label>
+
+                                <select name="user_wallet" class="form-select form-select-lg" required>
+                                    <option value="" disabled selected>-- Choose Wallet Address --</option>
+
+                                    {% for label, address in wallet_addresses.items %}
+                                        {% if address %}
+                                            <option value="{{ address }}">
+                                                {{ label }} — {{ address }}
+                                            </option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+
+                                <div class="form-text mt-1">
+                                    These wallet IDs were saved in your profile.
+                                </div>
                             </div>
 
-                            <button class="btn btn-primary w-100" type="submit">
-                                <i class="bi bi-arrow-right-circle me-2"></i>Create Deposit Intent
+                            <!-- Form Fields (amount + chain) -->
+                            <div class="mb-3">
+                                {{ form.amount.label_tag }}  
+                                {{ form.amount }}
+                            </div>
+
+                            <div class="mb-3">
+                                {{ form.chain.label_tag }}
+                                {{ form.chain }}
+                            </div>
+
+                            <!-- Submit Button -->
+                            <button class="btn btn-primary w-100 py-2 fs-5" type="submit">
+                                <i class="bi bi-arrow-right-circle me-2"></i>
+                                Create Deposit Intent
                             </button>
                         </form>
+
                     </div>
 
-                    <div class="card-footer bg-light text-center">
-                        <a href="{% url 'payment:deposit_history' %}" class="text-decoration-none">
-                            <i class="bi bi-clock-history me-1"></i>View Deposit History
+                    <!-- FOOTER -->
+                    <div class="card-footer bg-light text-center py-3">
+                        <a href="{% url 'payment:deposit_history' %}" class="text-decoration-none fw-semibold">
+                            <i class="bi bi-clock-history me-1"></i>
+                            View Deposit History
                         </a>
                     </div>
 

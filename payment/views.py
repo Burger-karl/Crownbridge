@@ -160,10 +160,9 @@ def withdrawal_payment_page(request, wid):
 # -------------------------
 @login_required
 def deposit_page(request):
-    """
-    Create a deposit intent (flow B).
-    User chooses chain & amount -> Deposit (pending) is created and user sees instructions.
-    """
+
+    profile = request.user.profile  # Get wallet IDs from user profile
+
     if request.method == 'POST':
         form = DepositForm(request.POST)
         if form.is_valid():
@@ -190,12 +189,25 @@ def deposit_page(request):
                 credited=False,
             )
 
-            messages.success(request, 'Deposit intent created. Follow the on-screen instructions to send funds to the address shown.')
+            messages.success(request, 'Deposit intent created. Follow the instructions to send funds.')
             return redirect('payment:deposit_instructions', deposit_id=deposit.id)
+
     else:
         form = DepositForm(initial={'chain': 'ethereum'})
 
-    return render(request, 'payment/deposit_page.html', {'form': form})
+    # wallet addresses from profile
+    wallet_addresses = {
+        "Bitcoin (BTC)": profile.bitcoin_id,
+        "Ethereum (ETH)": profile.ethereum_id,
+        "USDT (TRC20)": profile.usdt_trc20_id,
+        "Tron (TRX)": profile.tron_id,
+        "Binance BEP20": profile.bep20_id,
+    }
+
+    return render(request, 'payment/deposit_page.html', {
+        'form': form,
+        'wallet_addresses': wallet_addresses,
+    })
 
 
 @login_required

@@ -125,7 +125,9 @@ def edit_profile_view(request):
             form.save()
             messages.success(request, "Profile updated successfully!")
             return redirect("profile")
+        else:
+            messages.error(request, "Please fix the errors below.")
     else:
         form = ProfileEditForm(instance=profile)
 
-    return render(request, "users/edit_profile.html", {"form": form})
+    return render(request, "users/edit_profile.html", {"form": form, "profile": profile, "user": request.user})

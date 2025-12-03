@@ -69,6 +69,11 @@ class VerifyOTPForm(forms.Form):
 
 
 
+# users/forms.py
+
+from django import forms
+from .models import Profile
+
 class ProfileEditForm(forms.ModelForm):
     class Meta:
         model = Profile
@@ -85,31 +90,26 @@ class ProfileEditForm(forms.ModelForm):
             "tron_id",
             "bep20_id",
         ]
-
         widgets = {
-            "firstname": forms.TextInput(attrs={"class": "form-control"}),
-            "lastname": forms.TextInput(attrs={"class": "form-control"}),
-            "country": forms.TextInput(attrs={"class": "form-control"}),
-            "email": forms.EmailInput(attrs={"class": "form-control", "readonly": "readonly"}),
-            "phone": forms.TextInput(attrs={"class": "form-control"}),
-            "avatar": forms.FileInput(attrs={"class": "form-control"}),
-            "bitcoin_id": forms.TextInput(attrs={"class": "form-control"}),
-            "ethereum_id": forms.TextInput(attrs={"class": "form-control"}),
-            "usdt_trc20_id": forms.TextInput(attrs={"class": "form-control"}),
-            "tron_id": forms.TextInput(attrs={"class": "form-control"}),
-            "bep20_id": forms.TextInput(attrs={"class": "form-control"}),
+            "firstname": forms.TextInput(attrs={"class": "form-control", "placeholder": "First name"}),
+            "lastname": forms.TextInput(attrs={"class": "form-control", "placeholder": "Last name"}),
+            "country": forms.TextInput(attrs={"class": "form-control", "placeholder": "Country"}),
+            "email": forms.EmailInput(attrs={"class": "form-control", "readonly": "readonly", "placeholder": "Email"}),
+            "phone": forms.TextInput(attrs={"class": "form-control", "placeholder": "Phone number"}),
+            "avatar": forms.ClearableFileInput(attrs={"class": "form-control", "accept": "image/*"}),
+            "bitcoin_id": forms.TextInput(attrs={"class": "form-control", "placeholder": "Bitcoin address/id"}),
+            "ethereum_id": forms.TextInput(attrs={"class": "form-control", "placeholder": "Ethereum address/id"}),
+            "usdt_trc20_id": forms.TextInput(attrs={"class": "form-control", "placeholder": "USDT (TRC20) address"}),
+            "tron_id": forms.TextInput(attrs={"class": "form-control", "placeholder": "Tron address/id"}),
+            "bep20_id": forms.TextInput(attrs={"class": "form-control", "placeholder": "BEP20 (Binance) address"}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Add placeholder text automatically
-        for field_name, field in self.fields.items():
-            if field.widget.attrs.get("readonly"):
-                continue  # Skip readonly fields like email
+        # if email exists in instance, set initial value and keep readonly
+        if self.instance and getattr(self.instance, "email", None):
+            self.fields["email"].initial = self.instance.email
 
-            field.widget.attrs.setdefault("placeholder", field.label)
-
-        # Ensure file input is visible/styled
-        if "avatar" in self.fields:
-            self.fields["avatar"].widget.attrs["class"] = "form-control"
+        # ensure avatar field is shown even if blank
+        self.fields["avatar"].required = False

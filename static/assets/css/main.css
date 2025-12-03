@@ -499,6 +499,29 @@ h6 {
   }
 }
 
+
+/* Desktop: show desktop selector, hide mobile selector */
+.desktop-lang {
+    display: flex;
+}
+
+.mobile-lang {
+    display: none;
+}
+
+/* Mobile: hide the desktop selector, show mobile selector */
+@media (max-width: 1199px) {
+    .desktop-lang {
+        display: none !important;
+    }
+
+    .mobile-lang {
+        display: block !important;
+    }
+}
+
+
+
 /*--------------------------------------------------------------
 # Global Footer
 --------------------------------------------------------------*/
@@ -4902,3 +4925,31 @@ section,
     border-radius: 5px;
     border: 1px solid #ccc;
 }
+
+/* Hide Google Translate top banner */
+.goog-te-banner-frame.skiptranslate {
+    display: none !important;
+}
+
+/* Hide body top padding Google adds */
+body {
+    top: 0px !important;
+}
+
+/* Hide the default Google popup text */
+#goog-gt-tt, .goog-te-balloon-frame, .goog-tooltip, .goog-tooltip:hover {
+    display: none !important;
+}
+
+/* Hide the language dropdown Google injects */
+.goog-te-gadget-icon,
+.goog-te-gadget-simple,
+.goog-te-menu-value span {
+    display: none !important;
+}
+
+/* Hide the background of the notification bar */
+.goog-te-banner-frame {
+    visibility: hidden !important;
+}
+
