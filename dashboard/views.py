@@ -111,6 +111,7 @@ from payment.utils import get_user_available_balance
 
 @login_required
 def user_dashboard_view(request):
+    
     user = request.user
 
     # --- Investments ---
@@ -174,3 +175,30 @@ def user_dashboard_view(request):
         "referral_url": referral_url,
     }
     return render(request, "dashboard/user_dashboard.html", context)
+
+
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth import get_user_model
+from kyc.models import KYCVerification
+from payment.models import WithdrawalRequest
+
+User = get_user_model()
+
+@staff_member_required
+def admin_dashboard_view(request):
+    active_users_count = User.objects.filter(is_active=True).count()
+
+    pending_kyc_count = KYCVerification.objects.filter(
+        verified=False
+    ).count()
+
+    pending_withdrawals_count = WithdrawalRequest.objects.filter(
+        status="pending"
+    ).count()
+
+    context = {
+        "active_users_count": active_users_count,
+        "pending_kyc_count": pending_kyc_count,
+        "pending_withdrawals_count": pending_withdrawals_count,
+    }
+    return render(request, "dashboard/admin_dashboard.html", context)

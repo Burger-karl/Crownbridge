@@ -1,0 +1,130 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block banner-slider %}
+<!-- Sidebar -->
+<aside id="sidebar" class="sidebar bg-dark text-white shadow-lg">
+
+    <ul class="sidebar-nav list-unstyled mt-3" id="sidebar-nav">
+
+        <!-- Dashboard -->
+        <li class="nav-item mb-2">
+            <a class="nav-link d-flex align-items-center px-3 py-2 rounded " 
+               href="{% url 'admin_dashboard' %}">
+                <i class="bi bi-speedometer2 me-2 fs-5"></i>
+                <span>Dashboard</span>
+            </a>
+        </li>
+
+        <!-- Heading -->
+        <li class="nav-heading text-uppercase small text-muted px-3 mt-4 mb-2">
+            Main Menu
+        </li>
+
+        <!-- Home -->
+        <li class="nav-item mb-1">
+            <a class="nav-link collapsed d-flex align-items-center px-3 py-2 rounded" href="{% url 'home' %}">
+                <i class="bi bi-house-door me-2 fs-5"></i>
+                <span>Home</span>
+            </a>
+        </li>
+
+        <!-- KYC -->
+        <li class="nav-item mb-1">
+            <a class="nav-link collapsed d-flex align-items-center px-3 py-2 rounded" href="{% url 'kyc:admin_kyc_list' %}">
+                <i class="bi bi-shield-check me-2 fs-5 text-success"></i>
+                <span>KYC Approval</span>
+            </a>
+        </li>
+
+        <!-- Withdraw -->
+        <li class="nav-item mb-1">
+            <a class="nav-link collapsed d-flex align-items-center px-3 py-2 rounded" 
+               href="{% url 'payment:admin_pending_withdrawals' %}">
+                <i class="bi bi-cash-stack me-2 fs-5 text-danger"></i>
+                <span>Pending Withdraw</span>
+            </a>
+        </li>
+
+        <!-- Transaction History -->
+        <li class="nav-item mb-1">
+            <a class="nav-link collapsed d-flex align-items-center px-3 py-2 rounded" 
+               href="{% url 'payment:transaction_history' %}">
+                <i class="bi bi-journal-text me-2 fs-5 text-info"></i>
+                <span>Transaction History</span>
+            </a>
+        </li>
+
+        <!-- Logout -->
+        <li class="nav-item mt-4 mb-3">
+            <a class="nav-link collapsed d-flex align-items-center px-3 py-2 rounded" 
+               href="{% url 'logout' %}">
+                <i class="bi bi-box-arrow-right me-2 fs-5 text-danger"></i>
+                <span>Logout</span>
+            </a>
+        </li>
+
+    </ul>
+
+</aside>
+{% endblock banner-slider %}
+
+
+{% block main-content %}
+
+<div class="pagetitle">
+  <h1>Dashboard</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="index.html">Dashboard</a></li>
+      <li class="breadcrumb-item active">Admin</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
+
+<div class="container py-4">
+  <h3 class="mb-4">Admin Dashboard</h3>
+
+  <div class="row g-4">
+
+    <!-- Active Users -->
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body text-center">
+          <h6 class="text-muted">Active Users</h6>
+          <h2 class="fw-bold">{{ active_users_count }}</h2>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pending KYC -->
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body text-center">
+          <h6 class="text-muted">Pending KYC</h6>
+          <h2 class="fw-bold text-warning">{{ pending_kyc_count }}</h2>
+          <a href="{% url 'kyc:admin_kyc_list' %}" class="btn btn-sm btn-outline-warning mt-2">
+            Review
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pending Withdrawals -->
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body text-center">
+          <h6 class="text-muted">Pending Withdrawals</h6>
+          <h2 class="fw-bold text-danger">{{ pending_withdrawals_count }}</h2>
+          <a href="{% url 'payment:admin_pending_withdrawals' %}" class="btn btn-sm btn-outline-danger mt-2">
+            Review
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

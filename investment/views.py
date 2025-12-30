@@ -50,6 +50,8 @@ from django.db.models import Sum
 from .models import InvestmentPlan, InvestmentIntent, UserInvestment
 from payment.models import PlatformWallet, DepositAddress, UserBalance, Deposit
 from payment.utils import get_user_available_balance
+from payment.constants import RECEIVER_ADDRESSES
+
 
 logger = logging.getLogger(__name__)
 
@@ -143,7 +145,7 @@ def invest_page(request, plan_id):
                 )
 
             messages.success(request, f"Investment of ${amount_dec:.2f} created from your balance.")
-            return redirect("investment:user_investments")
+            return redirect("dashboard:user_dashboard")
 
         # Defensive: deposit action here should not be used any more (we route deposit to deposit_invest_view)
         else:
@@ -162,176 +164,84 @@ def invest_page(request, plan_id):
         },
     )
 
-
 @login_required
 def deposit_invest_view(request, plan_id):
-    """
-    New: Deposit-from-external-wallet feature for investing.
-    - GET: show a form: amount, chain, user's saved wallet IDs dropdown (only those with data),
-           show platform receiver wallet/address.
-    - POST: validate + create InvestmentIntent and a Deposit row with status='pending' so you can confirm it later.
-            After POST, render the same page but show the receiver address and "pending" instructions (no redirect).
-    """
     plan = get_object_or_404(InvestmentPlan, pk=plan_id)
-
-    # Available platform chains (prefer PlatformWallet rows)
-    platform_wallets = PlatformWallet.objects.all()
-    if platform_wallets.exists():
-        chain_choices = [(pw.chain, pw.get_chain_display()) for pw in platform_wallets]
-    else:
-        chain_choices = [
-            ("ethereum", "Ethereum (ERC20)"),
-            ("bsc", "Binance Smart Chain (BEP20)"),
-            ("tron", "Tron (TRC20)"),
-            ("bitcoin", "Bitcoin (BTC)"),
-            ("solana", "Solana (SOL)"),
-            ("polygon", "Polygon (MATIC)"),
-        ]
-
-    # Build user's saved wallet IDs from profile (only non-empty values)
     profile = request.user.profile
-    user_wallets = []  # list of (field_name, value, label)
-    # fields we added earlier on Profile
+
+    platform_wallets = PlatformWallet.objects.all()
+    chain_choices = [(pw.chain, pw.get_chain_display()) for pw in platform_wallets]
+
+    user_wallets = []
     wallet_fields = [
         ("bitcoin_id", "Bitcoin"),
         ("ethereum_id", "Ethereum"),
-        ("usdt_trc20_id", "USDT (TRC20)"),
         ("tron_id", "Tron"),
-        ("bep20_id", "BEP20 (Binance)"),
+        ("usdt_trc20_id", "USDT (TRC20)"),
+        ("bep20_id", "BEP20"),
     ]
-    for field_name, label in wallet_fields:
-        val = getattr(profile, field_name, None)
-        if val:
-            user_wallets.append((field_name, val, label))
 
-    # default context values for GET & (after POST) render
+    for field, label in wallet_fields:
+        val = getattr(profile, field)
+        if val:
+            user_wallets.append((field, val, label))
+
     context = {
         "plan": plan,
         "chain_choices": chain_choices,
         "user_wallets": user_wallets,
-        "platform_receiver": TEST_RECEIVER_WALLET,
         "intent_created": False,
-        "intent": None,
     }
 
     if request.method == "POST":
-        amount = request.POST.get("amount")
+        amount = Decimal(request.POST.get("amount"))
         chain = request.POST.get("chain")
-        selected_user_wallet_field = request.POST.get("user_wallet_field")  # e.g. 'bitcoin_id'
-        # Validate requested chain is allowed
-        allowed_chains = [c[0] for c in chain_choices]
-        if chain not in allowed_chains:
-            messages.error(request, "Selected chain is not allowed.")
-            return redirect("investment:deposit_invest", plan_id=plan_id)
+        wallet_field = request.POST.get("user_wallet_field")
 
-        # Parse amount
-        try:
-            amount_dec = Decimal(amount)
-            if amount_dec <= Decimal("0"):
-                raise InvalidOperation("Non-positive amount")
-        except Exception:
-            messages.error(request, "Invalid amount.")
-            return redirect("investment:deposit_invest", plan_id=plan_id)
+        if amount < plan.min_deposit or (plan.max_deposit and amount > plan.max_deposit):
+            messages.error(request, "Amount outside plan limits.")
+            return redirect("investment:deposit_invest", plan_id)
 
-        # Validate plan bounds
-        if amount_dec < plan.min_deposit or (plan.max_deposit and amount_dec > plan.max_deposit):
-            messages.error(
-                request,
-                f"Amount must be between ${plan.min_deposit} and ${plan.max_deposit or 'Unlimited'}.",
-            )
-            return redirect("investment:deposit_invest", plan_id=plan_id)
+        platform_wallet = get_object_or_404(PlatformWallet, chain=chain)
+        from_address = getattr(profile, wallet_field, None)
 
-        # Ensure selected_user_wallet_field belongs to the user and has value
-        selected_wallet_value = None
-        if selected_user_wallet_field:
-            selected_wallet_value = getattr(profile, selected_user_wallet_field, None)
-            if not selected_wallet_value:
-                messages.error(request, "Selected wallet ID is not valid.")
-                return redirect("investment:deposit_invest", plan_id=plan_id)
+        if not from_address:
+            messages.error(request, "Invalid wallet selected.")
+            return redirect("investment:deposit_invest", plan_id)
 
-        # find platform wallet row for the selected chain (if exists)
-        platform_wallet = PlatformWallet.objects.filter(chain=chain).first()
+        intent = InvestmentIntent.objects.create(
+            user=request.user,
+            plan=plan,
+            amount=amount,
+            chain=chain,
+        )
 
-        # Create InvestmentIntent (pending) and a matching Deposit (status pending)
-        try:
-            intent = InvestmentIntent.objects.create(
-                user=request.user,
-                plan=plan,
-                amount=amount_dec,
-                chain=chain,
-                completed=False,
-            )
+        deposit = Deposit.objects.create(
+            user=request.user,
+            platform_wallet=platform_wallet,
+            from_address=from_address,
+            amount=amount,
+            tx_hash=f"intent_{uuid.uuid4().hex}",
+            status="pending",
+            credited=False,
+            investment_intent=intent,
+        )
 
-            # create deposit row (status pending) for tracking — tx_hash left blank for the user to supply later
-            deposit = Deposit.objects.create(
-                user=request.user,
-                platform_wallet=platform_wallet,
-                deposit_address=None,
-                tx_hash=str(uuid.uuid4()),  # placeholder; your confirm command can update tx_hash
-                from_address=selected_wallet_value or "",
-                token_contract=None,
-                amount=amount_dec,
-                confirmations=0,
-                status="pending",
-                credited=False,
-            )
+        context = {
+            "plan": plan,
+            "chain_choices": chain_choices,
+            "user_wallets": user_wallets,
+            "receiver_addresses": RECEIVER_ADDRESSES,  # ✅
+            "intent_created": False,
+        }
 
-            # return the same page but render receiver and intent details so user can proceed to send funds
-            context.update({
-                "intent_created": True,
-                "intent": intent,
-                "deposit": deposit,
-                "selected_wallet_value": selected_wallet_value,
-                "platform_receiver": TEST_RECEIVER_WALLET,
-            })
 
-            messages.success(request, "Investment intent created. Please send the funds to the receiver address below.")
-            # render the page showing instructions (no redirect)
-            return render(request, "investment/deposit_invest.html", context)
+        messages.success(request, "Deposit intent created. Send funds to the address below.")
+        return render(request, "investment/deposit_invest.html", context)
 
-        except Exception as e:
-            logger.exception("Failed to create deposit intent for user %s: %s", request.user, e)
-            messages.error(request, "Could not create deposit intent. Please try again or contact support.")
-            return redirect("investment:deposit_invest", plan_id=plan_id)
-
-    # GET -> show form
     return render(request, "investment/deposit_invest.html", context)
+
     
-
-@login_required
-def deposit_instructions_view(request, intent_id):
-    """
-    Show deposit instructions for a given InvestmentIntent.
-    We use a fixed receiver wallet for testing (TEST_RECEIVER_WALLET).
-    """
-    intent = get_object_or_404(InvestmentIntent, pk=intent_id, user=request.user)
-
-    # For testing we use a constant receiver wallet address you supplied
-    receiver_wallet = TEST_RECEIVER_WALLET
-
-    # Create or update a Deposit record representing the pending intent (pseudo tx_hash)
-    pseudo_tx = f"intent_{intent.id}"
-    deposit, created = Deposit.objects.get_or_create(
-        tx_hash=pseudo_tx,
-        defaults={
-            "user": request.user,
-            "platform_wallet": PlatformWallet.objects.filter(chain=intent.chain).first(),
-            "deposit_address": None,
-            "amount": intent.amount,
-            "status": "pending",
-            "credited": False,
-        },
-    )
-
-    context = {
-        "plan": intent.plan,
-        "amount": intent.amount,
-        "chain": intent.chain,
-        "deposit_address": receiver_wallet,
-        "intent": intent,
-        "deposit": deposit,
-    }
-    return render(request, "investment/deposit_instructions.html", context)
 
 def promo_plan_view(request):
     """

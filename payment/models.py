@@ -13,9 +13,25 @@ class UserBalance(models.Model):
     balance = models.DecimalField(max_digits=32, decimal_places=8, default=Decimal('0.0'))
     updated_at = models.DateTimeField(auto_now=True)
 
+    def has_reference(self, reference: str) -> bool:
+        """
+        Prevent duplicate credits/debits for the same blockchain tx or mock tx.
+        """
+        if not reference:
+            return False
+        return Transaction.objects.filter(
+            user=self.user,
+            reference=reference
+        ).exists()
+
     def credit(self, amount: Decimal, note: str = "", reference: str = None):
-        Transaction.objects.create(user=self.user, amount=amount, kind='credit', note=note, reference=reference)
-        # Ensure Decimal arithmetic
+        Transaction.objects.create(
+            user=self.user,
+            amount=amount,
+            kind='credit',
+            note=note,
+            reference=reference
+        )
         self.balance = (self.balance or Decimal('0')) + Decimal(amount)
         self.save(update_fields=['balance', 'updated_at'])
 
@@ -23,51 +39,17 @@ class UserBalance(models.Model):
         amount = Decimal(amount)
         if (self.balance or Decimal('0')) < amount:
             raise ValueError("Insufficient balance")
-        Transaction.objects.create(user=self.user, amount=amount, kind='debit', note=note, reference=reference)
+
+        Transaction.objects.create(
+            user=self.user,
+            amount=amount,
+            kind='debit',
+            note=note,
+            reference=reference
+        )
         self.balance = (self.balance or Decimal('0')) - amount
         self.save(update_fields=['balance', 'updated_at'])
 
-    def transfer_to(self, recipient_user, amount: Decimal, note: str = "Transfer"):
-        """
-        Atomically transfer `amount` from this user to recipient_user.
-        Creates Transaction rows for both parties and updates balances.
-        """
-        amount = Decimal(amount)
-
-        if self.user == recipient_user:
-            raise ValueError("Cannot transfer to self")
-        if amount <= Decimal('0'):
-            raise ValueError("Transfer amount must be positive")
-
-        # Use select_for_update to lock rows in a transaction
-        with transaction.atomic():
-            sender_balance = UserBalance.objects.select_for_update().get(pk=self.pk)
-            receiver_balance, _ = UserBalance.objects.select_for_update().get_or_create(user=recipient_user)
-
-            if (sender_balance.balance or Decimal('0')) < amount:
-                raise ValueError("Insufficient balance")
-
-            # record debit for sender
-            Transaction.objects.create(
-                user=self.user,
-                amount=amount,
-                kind='debit',
-                note=note,
-            )
-            sender_balance.balance = sender_balance.balance - amount
-            sender_balance.save(update_fields=['balance', 'updated_at'])
-
-            # record credit for receiver
-            Transaction.objects.create(
-                user=recipient_user,
-                amount=amount,
-                kind='credit',
-                note=f"Received transfer from {self.user}",
-            )
-            receiver_balance.balance = (receiver_balance.balance or Decimal('0')) + amount
-            receiver_balance.save(update_fields=['balance', 'updated_at'])
-
-            return sender_balance, receiver_balance
 
 
 class Transaction(models.Model):
@@ -81,7 +63,16 @@ class Transaction(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=["user", "reference"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "reference"],
+                condition=~models.Q(reference=None),
+                name="unique_tx_reference_per_user"
+            )
+        ]
 
 
 class PlatformWallet(models.Model):
@@ -94,6 +85,7 @@ class PlatformWallet(models.Model):
         ("polygon", "Polygon (MATIC)"),
     ]
 
+    address = models.CharField(max_length=128, blank=True, null=True)
     name = models.CharField(max_length=50)
     chain = models.CharField(max_length=32, choices=CHAIN_CHOICES)
     xpub = models.TextField(blank=True, null=True, help_text="Extended public key to derive deposit addresses (no priv keys!)")
@@ -111,18 +103,13 @@ class DepositAddress(models.Model):
     derivation_index = models.BigIntegerField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     active = models.BooleanField(default=True)
+    
 
     class Meta:
         unique_together = ("user", "platform_wallet")
 
     def __str__(self):
         return f"{self.user} -> {self.address or 'Pending...'} ({self.platform_wallet.chain})"
-
-    def generate_address(self):
-        """Simulate address generation (replace with real wallet API in production)."""
-        self.address = f"{self.platform_wallet.chain}_{uuid.uuid4().hex[:20]}"
-        self.save(update_fields=["address"])
-        return self.address
 
 
 class Deposit(models.Model):
@@ -136,7 +123,7 @@ class Deposit(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="deposits")
     platform_wallet = models.ForeignKey(PlatformWallet, on_delete=models.SET_NULL, null=True)
     deposit_address = models.ForeignKey(DepositAddress, on_delete=models.SET_NULL, null=True, blank=True)
-    tx_hash = models.CharField(max_length=128, db_index=True)
+    tx_hash = models.CharField(max_length=128, db_index=True, unique=True)
     from_address = models.CharField(max_length=128, blank=True, null=True)
     token_contract = models.CharField(max_length=128, help_text="Token contract address (USDT)", null=True, blank=True)
     amount = models.DecimalField(max_digits=32, decimal_places=18, null=True, blank=True)
@@ -146,6 +133,13 @@ class Deposit(models.Model):
     credited = models.BooleanField(default=False, help_text="Whether user's internal balance was credited")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    investment_intent = models.ForeignKey(
+        "investment.InvestmentIntent",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL
+    )
+
 
     class Meta:
         indexes = [models.Index(fields=["tx_hash"]), models.Index(fields=["status"])]
@@ -179,15 +173,29 @@ class WithdrawalRequest(models.Model):
     def __str__(self):
         return f"Withdrawal {self.amount} {self.chain} for {self.user} ({self.status})"
 
-
 class P2PTransfer(models.Model):
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sent_transfers")
-    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name="received_transfers")
-    amount = models.DecimalField(max_digits=12, decimal_places=2)
-    created_at = models.DateTimeField(auto_now_add=True)
+    CHAIN_CHOICES = [
+        ("tron", "TRON"),
+        ("usdt_trc20", "USDT (TRC20)"),
+        ("ethereum", "Ethereum (ETH)"),
+        ("usdt_erc20", "USDT (ERC20)"),
+        ("bitcoin", "Bitcoin (BTC)"),
+    ]
 
-    class Meta:
-        ordering = ['-created_at']
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("completed", "Completed"),
+        ("failed", "Failed"),
+    ]
+
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sent_p2p")
+    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name="received_p2p")
+    amount = models.DecimalField(max_digits=18, decimal_places=8)
+    chain = models.CharField(max_length=20, choices=CHAIN_CHOICES, default="tron")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+    created_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return f"{self.sender.email} → {self.receiver.email} : {self.amount}"
+        return f"P2P {self.amount} {self.chain} from {self.sender} → {self.receiver}"
+

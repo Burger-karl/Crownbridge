@@ -10,9 +10,9 @@
   <meta content="" name="description">
   <meta content="" name="keywords">
 
-      <!-- Favicons -->
-    <link href="{% static 'assets/img/favicon.png' %}" rel="icon">
-    <link href="{% static 'assets/img/apple-touch-icon.png' %}" rel="apple-touch-icon">
+    <!-- Favicons -->
+    <link href="{% static 'assets/img/logoe.png' %}" rel="icon">
+    <link href="{% static 'assets/img/logoe.png' %}" rel="apple-touch-icon">
 
   <!-- Google Fonts -->
   <link href="https://fonts.gstatic.com" rel="preconnect">
@@ -205,16 +205,61 @@
                     </select>
                 </li>
 
-                <li class="nav-item dropdown">
+                <li class="nav-item dropdown notification-dropdown">
 
-
-                    <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown">
+                    <a class="nav-link nav-icon position-relative" href="#" data-bs-toggle="dropdown">
                         <i class="bi bi-bell"></i>
-                        <span class="badge bg-primary badge-number"></span>
-                    </a><!-- End Notification Icon -->
 
-                    
-                </li><!-- End Notification Nav -->
+                        {% if unread_notification_count > 0 %}
+                            <span class="badge bg-danger badge-number">
+                                {{ unread_notification_count }}
+                            </span>
+                        {% endif %}
+                    </a>
+
+                    <ul class="dropdown-menu dropdown-menu-end notification-menu">
+
+                        <li class="dropdown-header d-flex justify-content-between align-items-center">
+                            <span>Notifications</span>
+                            <a href="#" class="text-primary small">
+                                Mark all read
+                            </a>
+                        </li>
+
+                        <li><hr class="dropdown-divider"></li>
+
+                        {% if notifications %}
+                            {% for notification in notifications %}
+                                <li class="notification-item {% if not notification.is_read %}unread{% endif %}">
+                                    <a href="{{ notification.action_url|default:'#' }}" class="d-flex align-items-start">
+                                        <div class="notification-icon">
+                                            <i class="bi {{ notification.icon }}"></i>
+                                        </div>
+                                        <div class="notification-content">
+                                            <p class="mb-1">{{ notification.message }}</p>
+                                            <small class="text-muted">
+                                                {{ notification.created_at|timesince }} ago
+                                            </small>
+                                        </div>
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        {% else %}
+                            <li class="text-center text-muted py-3">
+                                No notifications
+                            </li>
+                        {% endif %}
+
+                        <li><hr class="dropdown-divider"></li>
+
+                        <li class="text-center">
+                            <a href="{% url 'notifications:list' %}" class="dropdown-footer">
+                                View all notifications
+                            </a>
+                        </li>
+
+                    </ul>
+                </li>
 
                 <li class="nav-item dropdown pe-3">
 
@@ -344,6 +389,10 @@
 
     <!-- Template Main JS File -->
     <script src="{% static 'assets/js/script.js' %}"></script>
+    <script src="{% static 'payment/js/deposit_toggle.js' %}"></script>
+    <script src="{% static 'payment/js/tron_deposit.js' %}"></script>
+    <script src="{% static 'payment/js/metamask_deposit.js' %}"></script>
+
 
 </body>
 

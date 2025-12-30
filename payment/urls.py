@@ -11,7 +11,7 @@ urlpatterns = [
     path("admin/withdrawals/pending/", views.pending_withdrawals, name="admin_pending_withdrawals"),
     path("admin/withdrawals/<uuid:wid>/approve/", views.approve_withdrawal, name="approve_withdrawal"),
     path("admin/withdrawals/<uuid:wid>/decline/", views.decline_withdrawal, name="decline_withdrawal"),
-    path("withdraw/<uuid:wid>/pay/", views.withdrawal_payment_page, name="withdrawal_payment_page"),
+    path("withdraw/<uuid:wid>/pay/", views.admin_withdrawal_payment, name="withdrawal_payment_page"),
 
     # Deposit flow
     path('deposit/', views.deposit_page, name='deposit'),
@@ -19,9 +19,12 @@ urlpatterns = [
     path('deposit/history/', views.deposit_history, name='deposit_history'),
 
     # Transfers
-    path('transfer/', views.transfer_page, name='transfer'),
     path('transfer/history/', views.transfer_history, name='transfer_history'),
     path("p2ptransfer/", views.p2p_transfer_view, name="p2ptransfer"),
 
     path("transactions/", views.transaction_history_view, name="transaction_history"),
+
+    path("tron_deposit/", views.confirm_tron_deposit, name="confirm_tron_deposit"),
+    path("eth_deposit/", views.confirm_eth_deposit, name="confirm_eth_deposit"),
+    
 ]

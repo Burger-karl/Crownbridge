@@ -90,12 +90,45 @@
         </li>
 
         <!-- Transaction History -->
-        <li class="nav-item mb-1">
-            <a class="nav-link collapsed d-flex align-items-center px-3 py-2 rounded" 
-               href="{% url 'payment:transaction_history' %}">
+        <li class="nav-item dropdown mb-1">
+            <a class="nav-link collapsed d-flex align-items-center px-3 py-2 rounded dropdown-toggle"
+              href="{% url 'payment:transaction_history' %}"
+              id="transactionsDropdown"
+              role="button"
+              data-bs-toggle="dropdown"
+              aria-expanded="false">
                 <i class="bi bi-journal-text me-2 fs-5 text-info"></i>
-                <span>Transaction History</span>
+                <span>Transactions History</span>
             </a>
+
+            <ul class="dropdown-menu shadow border-0 rounded-3 ms-3"
+                aria-labelledby="transactionsDropdown">
+
+                <li>
+                    <a class="dropdown-item d-flex align-items-center"
+                      href="{% url 'payment:deposit_history' %}">
+                        <i class="bi bi-list-ul me-2 text-primary"></i>
+                        Deposit History
+                    </a>
+                </li>
+
+                <li>
+                    <a class="dropdown-item d-flex align-items-center"
+                      href="{% url 'payment:transfer_history' %}">
+                        <i class="bi bi-arrow-down-circle me-2 text-success"></i>
+                        Transfer History
+                    </a>
+                </li>
+
+                <li>
+                    <a class="dropdown-item d-flex align-items-center"
+                      href="{% url 'payment:withdrawals' %}">
+                        <i class="bi bi-arrow-up-circle me-2 text-danger"></i>
+                        Withdrawal History
+                    </a>
+                </li>
+
+            </ul>
         </li>
 
         <!-- Logout -->
@@ -126,24 +159,78 @@
 </div><!-- End Page Title -->
 
   <div class="container py-5">
-    <h2>Your Transactions</h2>
-    <div class="card shadow-lg border-0 rounded-4 p-4">
-      <table>
-        <thead><tr><th>When</th><th>Kind</th><th>Amount</th><th>Note</th></tr></thead>
-        <tbody>
-          {% for t in transactions %}
-          <tr>
-            <td>{{ t.created_at }}</td>
-            <td>{{ t.kind }}</td>
-            <td>{{ t.amount }}</td>
-            <td>{{ t.note }}</td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="4">No transactions yet.</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
+  <div class="row justify-content-center">
+    <div class="col-12">
+
+      <div class="card shadow-sm border-0 rounded-4">
+        
+        <!-- Card Header -->
+        <div class="card-header bg-white border-0 d-flex align-items-center justify-content-between">
+          <h5 class="mb-0 fw-semibold">
+            <i class="bi bi-clock-history me-2 text-primary"></i>
+            Transfer History
+          </h5>
+        </div>
+
+        <!-- Table Wrapper -->
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light text-uppercase small">
+                <tr>
+                  <th scope="col">Date</th>
+                  <th scope="col">Type</th>
+                  <th scope="col">Amount</th>
+                  <th scope="col">Note</th>
+                </tr>
+              </thead>
+              <tbody>
+
+                {% for t in transactions %}
+                <tr>
+                  <td class="text-muted small">
+                    {{ t.created_at|date:"M d, Y H:i" }}
+                  </td>
+
+                  <td>
+                    {% if t.kind == "credit" %}
+                      <span class="badge bg-success-subtle text-success fw-semibold">
+                        Credit
+                      </span>
+                    {% else %}
+                      <span class="badge bg-danger-subtle text-danger fw-semibold">
+                        Debit
+                      </span>
+                    {% endif %}
+                  </td>
+
+                  <td class="fw-semibold">
+                    {{ t.amount }}
+                  </td>
+
+                  <td class="text-muted small">
+                    {{ t.note|default:"—" }}
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="4" class="text-center py-4 text-muted">
+                    <i class="bi bi-inbox fs-4 d-block mb-2"></i>
+                    No transactions yet
+                  </td>
+                </tr>
+                {% endfor %}
+
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
     </div>
   </div>
+</div>
+
   
 {% endblock %}

@@ -9,41 +9,57 @@ from .models import EmailVerification, CustomUser
 from datetime import timedelta
 
 def register_view(request):
-    # capture referral code from querystring (e.g. /register/?ref=CODE)
     ref_code = request.GET.get("ref") or request.POST.get("referral_code")
     ref_user = None
     if ref_code:
         try:
             ref_user = CustomUser.objects.get(referral_code=ref_code)
         except CustomUser.DoesNotExist:
-            ref_user = None  # ignore invalid code (do not block registration)
+            pass
 
     if request.method == "POST":
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
-            # attach referral if present (make sure not to self-refer)
+
             if ref_user and ref_user != user:
                 user.referred_by = ref_user
+
             user.save()
 
-            # Generate OTP (console)
+            # 🔥 SAVE PROFILE WALLET IDS
+            profile = user.profile
+            profile.bitcoin_id = form.cleaned_data.get("bitcoin_id")
+            profile.ethereum_id = form.cleaned_data.get("ethereum_id")
+            profile.usdt_trc20_id = form.cleaned_data.get("usdt_trc20_id")
+            profile.tron_id = form.cleaned_data.get("tron_id")
+            profile.bep20_id = form.cleaned_data.get("bep20_id")
+            profile.email = user.email
+            profile.save()
+
+            # OTP logic
             otp = EmailVerification.generate_otp()
-            verification = EmailVerification.objects.create(
+            EmailVerification.objects.create(
                 user=user,
                 otp=otp,
                 expires_at=timezone.now() + timedelta(minutes=10),
             )
 
-            # Print OTP to console for now (no email backend)
             print(f"[DEBUG] OTP for {user.email} is {otp}")
 
-            messages.info(request, "Account created! An OTP has been printed to the console. Please verify your email.")
-            # redirect to verify OTP page and prefill email param so user doesn't have to type it
+            messages.info(
+                request,
+                "Account created! An OTP has been printed to the console. Please verify your email."
+            )
             return redirect(f"{reverse('verify_otp')}?email={user.email}")
     else:
         form = RegisterForm()
-    return render(request, "users/register.html", {"form": form, "referral_code": ref_code, "ref_user": ref_user})
+
+    return render(request, "users/register.html", {
+        "form": form,
+        "referral_code": ref_code,
+        "ref_user": ref_user
+    })
 
 
 def verify_otp_view(request):
@@ -94,11 +110,18 @@ def login_view(request):
 
                 login(request, user)
                 messages.success(request, f"Welcome back {user.full_name or user.email}!")
-                return redirect("user_dashboard")  # Change to your homepage
-            else:
-                messages.error(request, "Invalid credentials")
+
+                # 🔑 Admin redirect
+                if user.is_staff or user.is_superuser:
+                    return redirect("admin_dashboard")
+
+                # 👤 Normal user redirect
+                return redirect("user_dashboard")
+
+            messages.error(request, "Invalid credentials")
     else:
         form = LoginForm()
+
     return render(request, "users/login.html", {"form": form})
 
 

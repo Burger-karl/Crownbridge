@@ -28,15 +28,30 @@ class P2PTransferForm(forms.Form):
             "placeholder": "Enter receiver email"
         })
     )
+
     amount = forms.DecimalField(
-        max_digits=12,
-        decimal_places=2,
+        max_digits=18,
+        decimal_places=8,
         widget=forms.NumberInput(attrs={
             "class": "form-control",
             "placeholder": "Enter amount",
-            "step": "0.01"
+            "step": "0.00000001"
         })
     )
+
+    chain = forms.ChoiceField(
+        choices=[
+            ("tron", "TRON"),
+            ("usdt_trc20", "USDT (TRC20)"),
+            ("ethereum", "Ethereum (ETH)"),
+            ("usdt_erc20", "USDT (ERC20)"),
+            ("bitcoin", "Bitcoin (BTC)"),
+        ],
+        widget=forms.Select(attrs={"class": "form-select"})
+    )
+    
+
+
 
 from django import forms
 from .models import WithdrawalRequest

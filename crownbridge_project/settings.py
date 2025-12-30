@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import cloudinary
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -49,10 +50,14 @@ INSTALLED_APPS = [
     'payment',
     'kyc',
     'supportchat',
+    'notifications',
 
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
+
+    'cloudinary',
+    'cloudinary_storage',
 ]
 
 MIDDLEWARE = [
@@ -80,6 +85,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'notifications.context_processors.notifications_processor',
             ],
         },
     },
@@ -151,8 +157,16 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR/'media'
+# MEDIA_URL = '/media/'
+# MEDIA_ROOT = BASE_DIR/'media'
+
+CLOUDINARY_STORAGE = {
+    "CLOUD_NAME": os.getenv("CLOUDINARY_CLOUD_NAME"),
+    "API_KEY": os.getenv("CLOUDINARY_API_KEY"),
+    "API_SECRET": os.getenv("CLOUDINARY_API_SECRET"),
+}
+
+DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
 
 # Default primary key field type
@@ -163,3 +177,29 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'users.CustomUser'
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+
+TATUM_API_KEY = os.getenv("TATUM_API_KEY", "your_test_api_key_here")
+# TATUM_BASE_URL = os.getenv("TATUM_BASE_URL", "https://api.tatum.io")  # keep default
+# # For test/dev you can sign with a private key directly; in prod use Tatum KMS
+# TATUM_MASTER_PRIVATE_KEY = os.getenv("TATUM_MASTER_PRIVATE_KEY", None)
+# # ID or address for your platform master account (for offchain / ledger actions)
+# TATUM_MASTER_ACCOUNT = os.getenv("TATUM_MASTER_ACCOUNT", None)
+# # Webhook secret (optional) — configure in Tatum dashboard to secure webhooks
+# TATUM_WEBHOOK_SECRET = os.getenv("TATUM_WEBHOOK_SECRET", None)
+
+# TRON Settings
+TRONGRID_API_KEY = os.getenv("TRONGRID_API_KEY")
+USDT_TRC20_CONTRACT = "TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj"
+
+TRON_PLATFORM_PRIVATE_KEY = os.getenv("TRON_PLATFORM_PRIVATE_KEY")
+TRON_PLATFORM_ADDRESS = os.getenv("TRON_PLATFORM_ADDRESS")
+
+
+# Ethereum Settings
+ETHERSCAN_API_KEY = os.getenv("ETHERSCAN_API_KEY")
+USDT_ERC20_CONTRACT = "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+
+ETH_RPC_URL = os.getenv("ETH_RPC_URL")
+ETH_PLATFORM_PRIVATE_KEY = os.getenv("ETH_PLATFORM_PRIVATE_KEY")
+ETH_PLATFORM_ADDRESS = os.getenv("ETH_PLATFORM_ADDRESS")
+

@@ -90,12 +90,45 @@
         </li>
 
         <!-- Transaction History -->
-        <li class="nav-item mb-1">
-            <a class="nav-link collapsed d-flex align-items-center px-3 py-2 rounded" 
-               href="{% url 'payment:transaction_history' %}">
+        <li class="nav-item dropdown mb-1">
+            <a class="nav-link collapsed d-flex align-items-center px-3 py-2 rounded dropdown-toggle"
+              href="{% url 'payment:transaction_history' %}"
+              id="transactionsDropdown"
+              role="button"
+              data-bs-toggle="dropdown"
+              aria-expanded="false">
                 <i class="bi bi-journal-text me-2 fs-5 text-info"></i>
-                <span>Transaction History</span>
+                <span>Transactions History</span>
             </a>
+
+            <ul class="dropdown-menu shadow border-0 rounded-3 ms-3"
+                aria-labelledby="transactionsDropdown">
+
+                <li>
+                    <a class="dropdown-item d-flex align-items-center"
+                      href="{% url 'payment:deposit_history' %}">
+                        <i class="bi bi-list-ul me-2 text-primary"></i>
+                        Deposit History
+                    </a>
+                </li>
+
+                <li>
+                    <a class="dropdown-item d-flex align-items-center"
+                      href="{% url 'payment:transfer_history' %}">
+                        <i class="bi bi-arrow-down-circle me-2 text-success"></i>
+                        Transfer History
+                    </a>
+                </li>
+
+                <li>
+                    <a class="dropdown-item d-flex align-items-center"
+                      href="{% url 'payment:withdrawals' %}">
+                        <i class="bi bi-arrow-up-circle me-2 text-danger"></i>
+                        Withdrawal History
+                    </a>
+                </li>
+
+            </ul>
         </li>
 
         <!-- Logout -->
@@ -143,7 +176,7 @@
                     <h1 class="fw-bold">${{ available_balance|floatformat:2 }}</h1>
                 {% else %}
                     <p class="text-danger fw-semibold">
-                        Please <a href="#" class="text-decoration-none text-warning">fund your account</a>
+                        Please <a href="{% url 'payment:deposit' %}" class="text-decoration-none text-warning">fund your account</a>
                     </p>
                 {% endif %}
             </div>
@@ -193,7 +226,7 @@
                 </div>
 
                 <div class="col">
-                    <a href="{% url 'payment:transfer' %}" class="text-decoration-none text-white">
+                    <a href="{% url 'payment:p2ptransfer' %}" class="text-decoration-none text-white">
                         <i class="bi bi-credit-card-fill fs-2 text-warning"></i>
                         <p class="mt-1 small">Transfer</p>
                     </a>
@@ -306,95 +339,6 @@
       </div>
 
     </div>
-
-    <!-- Transaction History -->
-    <div class="col-lg-12 mt-4">
-      <div class="card shadow-lg border-0 rounded-4">
-        
-        <div class="card-header bg-primary bg-gradient text-white py-3 rounded-top-4">
-          <h4 class="mb-0"><i class="bi bi-clock-history me-2"></i>Transaction History</h4>
-        </div>
-
-        <div class="card-body">
-
-          <!-- Scrollable table -->
-          <div class="table-responsive rounded-3 border">
-            <table class="table table-hover align-middle mb-0">
-              <thead class="table-dark">
-                <tr>
-                  <th>Date</th>
-                  <th>Type</th>
-                  <th>Amount</th>
-                  <th>Details</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {% for tx in tx_page_obj %}
-                <tr>
-                  <!-- Date -->
-                  <td class="fw-semibold">
-                    {% if tx.created_at %}
-                      {{ tx.created_at|date:"M d, Y H:i" }}
-                    {% elif tx.processed_at %}
-                      {{ tx.processed_at|date:"M d, Y H:i" }}
-                    {% endif %}
-                  </td>
-
-                  <!-- Type -->
-                  <td>
-                    <span class="badge 
-                      {% if tx.tx_type == 'Deposit' %} bg-success
-                      {% elif tx.tx_type == 'Withdrawal' %} bg-danger
-                      {% elif tx.tx_type == 'Transfer' %} bg-info text-dark
-                      {% elif tx.tx_type == 'P2P Sent' %} bg-warning text-dark
-                      {% else %} bg-secondary
-                      {% endif %}
-                    ">
-                      {{ tx.tx_type }}
-                    </span>
-                  </td>
-
-                  <!-- Amount -->
-                  <td class="fw-bold">
-                    {% if tx.amount %}
-                      ${{ tx.amount|floatformat:2 }}
-                    {% elif tx.amount_sent %}
-                      ${{ tx.amount_sent|floatformat:2 }}
-                    {% elif tx.amount_received %}
-                      ${{ tx.amount_received|floatformat:2 }}
-                    {% endif %}
-                  </td>
-
-                  <!-- Details -->
-                  <td>
-                    {% if tx.tx_type == 'Deposit' %}
-                      <small class="text-muted">Deposit ID: {{ tx.id }}</small>
-                    {% elif tx.tx_type == 'Withdrawal' %}
-                      <small class="text-muted">Withdrawal ID: {{ tx.id }}</small>
-                    {% elif tx.tx_type == 'Transfer' %}
-                      <small class="text-muted">Note: {{ tx.note }}</small>
-                    {% elif tx.tx_type == 'P2P Sent' %}
-                      <small class="text-muted">Sent to: {{ tx.receiver.email }}</small>
-                    {% elif tx.tx_type == 'P2P Received' %}
-                      <small class="text-muted">Received from: {{ tx.sender.email }}</small>
-                    {% endif %}
-                  </td>
-
-                </tr>
-                {% empty %}
-                <tr>
-                  <td colspan="4" class="text-center py-4 text-muted">No transactions yet.</td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-
-        </div>
-      </div>
-    </div>
-
 
     <!-- Referral Section -->
     <div class="col-lg-4 mt-4">

@@ -7,6 +7,7 @@ from django.utils import timezone
 from .managers import CustomUserManager
 from django.urls import reverse
 from django.conf import settings
+from cloudinary.models import CloudinaryField
 
 
 def generate_referral_code():
@@ -15,7 +16,7 @@ def generate_referral_code():
 
 
 def default_avatar():
-    return "avatars/default.jpg" 
+    return "https://res.cloudinary.com/dykhctgak/image/upload/v1767100161/avatar2_xfhjqo.jpg" 
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
@@ -82,7 +83,7 @@ class Profile(models.Model):
     country = models.CharField(max_length=100, blank=True)
     phone = models.CharField(max_length=20, blank=True)
     email = models.EmailField(blank=True)
-    avatar = models.ImageField(upload_to="avatars/", default=default_avatar)
+    avatar = CloudinaryField("profile", blank=True, null=True, default="default_avatar")
 
     # NEW CRYPTO FIELDS
     bitcoin_id = models.CharField(max_length=255, blank=True, null=True)

@@ -9,8 +9,8 @@ urlpatterns = [
     path("plans/", views.investment_plans_list, name="investment_plans"),
     path("promo/", views.promo_plan_view, name="promo_plan"),
 
-    # deposit instructions keyed by InvestmentIntent id (UUID)
-    path("deposit/<uuid:intent_id>/instructions/", views.deposit_instructions_view, name="deposit_instructions"),
+    # # deposit instructions keyed by InvestmentIntent id (UUID)
+    # path("deposit/<uuid:intent_id>/instructions/", views.deposit_instructions_view, name="deposit_instructions"),
 
     # NEW: deposit-from-external-wallet to invest (no redirect; shows receiver info)
     path("deposit/invest/<int:plan_id>/", views.deposit_invest_view, name="deposit_invest"),

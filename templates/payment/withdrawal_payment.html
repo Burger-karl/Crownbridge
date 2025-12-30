@@ -11,7 +11,7 @@
         <!-- Dashboard -->
         <li class="nav-item mb-2">
             <a class="nav-link d-flex align-items-center px-3 py-2 rounded " 
-               href="{% url 'user_dashboard' %}">
+               href="{% url 'admin_dashboard' %}">
                 <i class="bi bi-speedometer2 me-2 fs-5"></i>
                 <span>Dashboard</span>
             </a>
@@ -30,62 +30,20 @@
             </a>
         </li>
 
-        <!-- Deposit -->
-        <li class="nav-item mb-1">
-            <a class="nav-link collapsed d-flex align-items-center px-3 py-2 rounded" href="{% url 'payment:deposit' %}">
-                <i class="bi bi-wallet2 me-2 fs-5 text-warning"></i>
-                <span>Make Deposit</span>
-            </a>
-        </li>
-
-        <!-- Loan -->
-        <li class="nav-item mb-1">
-            <a class="nav-link collapsed d-flex align-items-center px-3 py-2 rounded" href="#">
-                <i class="bi bi-bank2 me-2 fs-5 text-info"></i>
-                <span>Apply for Loan</span>
-            </a>
-        </li>
-
         <!-- KYC -->
         <li class="nav-item mb-1">
-            <a class="nav-link collapsed d-flex align-items-center px-3 py-2 rounded" href="{% url 'kyc:verify' %}">
+            <a class="nav-link collapsed d-flex align-items-center px-3 py-2 rounded" href="{% url 'kyc:admin_kyc_list' %}">
                 <i class="bi bi-shield-check me-2 fs-5 text-success"></i>
-                <span>KYC Verification</span>
-            </a>
-        </li>
-
-        <!-- Promo Plans -->
-        <li class="nav-item mb-1">
-            <a class="nav-link collapsed d-flex align-items-center px-3 py-2 rounded" href="{% url 'investment:promo_plan' %}">
-                <i class="bi bi-star me-2 fs-5 text-warning"></i>
-                <span>Promo Plans</span>
-            </a>
-        </li>
-
-        <!-- Investment Plans -->
-        <li class="nav-item mb-1">
-            <a class="nav-link collapsed d-flex align-items-center px-3 py-2 rounded" 
-               href="{% url 'investment:investment_plans' %}">
-                <i class="bi bi-graph-up-arrow me-2 fs-5 text-primary"></i>
-                <span>Investment Plans</span>
+                <span>KYC Approval</span>
             </a>
         </li>
 
         <!-- Withdraw -->
         <li class="nav-item mb-1">
             <a class="nav-link collapsed d-flex align-items-center px-3 py-2 rounded" 
-               href="{% url 'payment:withdraw' %}">
+               href="{% url 'payment:admin_pending_withdrawals' %}">
                 <i class="bi bi-cash-stack me-2 fs-5 text-danger"></i>
-                <span>Withdraw</span>
-            </a>
-        </li>
-
-        <!-- P2P Transfer -->
-        <li class="nav-item mb-1">
-            <a class="nav-link collapsed d-flex align-items-center px-3 py-2 rounded" 
-               href="{% url 'payment:p2ptransfer' %}">
-                <i class="bi bi-arrow-left-right me-2 fs-5 text-warning"></i>
-                <span>P2P Transfer</span>
+                <span>Pending Withdraw</span>
             </a>
         </li>
 
@@ -126,17 +84,65 @@
 </div><!-- End Page Title -->
 
 <div class="container py-5">
-  <h4>Withdrawal Payment</h4>
-  <div class="card shadow-lg border-0 rounded-4 p-4">
-    <p>Withdrawal ID: <strong>{{ withdrawal.id }}</strong></p>
-    <p>Amount: <strong>${{ withdrawal.amount }}</strong></p>
-    <p>To: <code>{{ withdrawal.to_address }}</code></p>
-    <p>Status: <strong>{{ withdrawal.status }}</strong></p>
-
-    <div class="alert alert-info">
-      This is a placeholder payment page. In production the payout service would broadcast the transaction and update the withdrawal record (tx_hash & status).
+  <div class="card shadow-lg border-0 rounded-4">
+    <div class="card-header bg-dark text-white">
+      <h5 class="mb-0">Withdrawal Payment</h5>
     </div>
-    <a href="{% url 'payment:withdrawals' %}" class="btn btn-secondary">Back</a>
+
+    <div class="card-body">
+      <p><strong>User:</strong> {{ withdrawal.user.email }}</p>
+      <p><strong>To Address:</strong> <code>{{ withdrawal.to_address }}</code></p>
+
+      <form method="post">
+        {% csrf_token %}
+
+        <div class="mb-3">
+          <label class="form-label">Amount</label>
+          <input type="number" step="0.00000001"
+                 name="amount"
+                 value="{{ withdrawal.amount }}"
+                 class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Chain</label>
+          <select name="chain" id="chainSelect" class="form-select" required>
+            {% for key, addr in receiver_addresses.items %}
+              <option value="{{ key }}" {% if withdrawal.chain == key %}selected{% endif %}>
+                {{ key|upper }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="d-grid gap-2">
+          <button id="payBtn" class="btn btn-primary btn-lg">
+            Send Payment
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
+
+<script>
+  const chainSelect = document.getElementById("chainSelect");
+  const payBtn = document.getElementById("payBtn");
+
+  const labels = {
+    tron: "Send with TronLink",
+    ethereum: "Send with MetaMask",
+    bitcoin: "Send BTC",
+    usdt_trc20: "Send USDT (TRC20)",
+    usdt_erc20: "Send USDT (ERC20)"
+  };
+
+  function updateButton() {
+    const chain = chainSelect.value;
+    payBtn.textContent = labels[chain] || "Send Payment";
+  }
+
+  chainSelect.addEventListener("change", updateButton);
+  updateButton();
+</script>
 {% endblock %}

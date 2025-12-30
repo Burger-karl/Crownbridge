@@ -29,4 +29,3 @@ def approve_withdrawals(modeladmin, request, queryset):
 class WithdrawalRequestAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'amount', 'to_address', 'chain', 'status', 'requested_at', 'processed_at')
     actions = [approve_withdrawals]
-
