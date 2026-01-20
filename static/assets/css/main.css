@@ -521,6 +521,41 @@ h6 {
 }
 
 
+/* ================================
+   Mobile Google Translate (Navbar)
+================================ */
+
+.mobile-lang-selector {
+  display: none;
+}
+
+@media (max-width: 1199px) {
+  .mobile-lang-selector {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    margin-right: 10px;
+    z-index: 9999;
+  }
+
+  .mobile-lang-selector select {
+    width: 65px;
+    padding: 3px 6px;
+    font-size: 12px;
+    border-radius: 6px;
+  }
+
+  /* Hide desktop selector completely */
+  .desktop-lang {
+    display: none !important;
+  }
+
+  /* Hide login button on mobile */
+  .cta-btn {
+    display: none !important;
+  }
+}
+
 
 /*--------------------------------------------------------------
 # Global Footer

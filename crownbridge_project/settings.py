@@ -14,7 +14,7 @@ import cloudinary
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-
+import dj_database_url
 
 load_dotenv()
 
@@ -31,7 +31,7 @@ SECRET_KEY = 'django-insecure-7lz(!#l*x1l(7@s18izu-r4o)ids=rk*q&=fa(h)j2k59z%39i
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', 'crownbridge.onrender.com', 'crown-mqge.onrender.com']
+ALLOWED_HOSTS = ['localhost', 'crownbridge.onrender.com', 'crown-mqge.onrender.com', '127.0.0.1:8000']
 
 
 # Application definition
@@ -103,7 +103,6 @@ WSGI_APPLICATION = 'crownbridge_project.wsgi.application'
 #         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
-
 
 DATABASES = {
     'default': {

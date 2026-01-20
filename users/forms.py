@@ -36,12 +36,12 @@ class RegisterForm(forms.ModelForm):
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.set_password(self.cleaned_data["password1"])
-        user.is_verified = False
+        user.set_password(self.cleaned_data["password1"])  # ✅ hashed
+        user.is_active = True
 
         if commit:
             user.save()
-            # Save crypto IDs into Profile
+
             profile = user.profile
             profile.bitcoin_id = self.cleaned_data.get("bitcoin_id")
             profile.ethereum_id = self.cleaned_data.get("ethereum_id")
@@ -61,11 +61,6 @@ class LoginForm(AuthenticationForm):
     password = forms.CharField(
         label="Password", widget=forms.PasswordInput(attrs={"class": "form-control"})
     )
-
-
-class VerifyOTPForm(forms.Form):
-    email = forms.EmailField(widget=forms.EmailInput(attrs={"class": "form-control"}))
-    otp = forms.CharField(max_length=6, widget=forms.TextInput(attrs={"class": "form-control"}))
 
 
 

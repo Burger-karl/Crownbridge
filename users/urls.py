@@ -1,13 +1,12 @@
 from django.urls import path
 from .views import (
-    register_view, login_view, logout_view, verify_otp_view,
+    register_view, login_view, logout_view,
     profile_view, edit_profile_view
 )
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     path("register/", register_view, name="register"),
-    path("verify-otp/", verify_otp_view, name="verify_otp"),
     path("login/", login_view, name="login"),
     path("logout/", logout_view, name="logout"),
 

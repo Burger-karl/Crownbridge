@@ -22,7 +22,6 @@ def default_avatar():
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=150, blank=True)
-    is_verified = models.BooleanField(default=False)        # email OTP verified
     kyc_verified = models.BooleanField(default=False)       # KYC status
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -57,20 +56,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     def referral_link(self):
         # Change the domain/path to your real registration URL
         return f"{reverse('register')}?ref={self.referral_code}"
-
-
-class EmailVerification(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="verifications")
-    otp = models.CharField(max_length=6)
-    created_at = models.DateTimeField(auto_now_add=True)
-    expires_at = models.DateTimeField()
-
-    def is_expired(self):
-        return timezone.now() > self.expires_at
-
-    @staticmethod
-    def generate_otp():
-        return str(random.randint(100000, 999999))  # 6-digit OTP
     
 
 # -------------------------

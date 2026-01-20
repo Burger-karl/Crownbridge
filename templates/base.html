@@ -48,64 +48,136 @@
 
 <script type="text/javascript">
     function googleTranslateElementInit() {
-        new google.translate.TranslateElement({
-            pageLanguage: 'en',
-            includedLanguages: 'af,sq,am,ar,hy,az,eu,be,bn,bg,ca,ceb,zh-CN,zh-TW,co,hr,cs,da,nl,en,eo,et,fi,fr,fy,gl,ka,de,el,gu,ht,ha,haw,iw,hi,hmn,hu,is,ig,id,ga,it,ja,jw,kn,kk,km,rw,ko,ku,ky,lo,la,lv,lt,lb,mk,mg,ms,ml,mt,mi,mr,mn,my,ne,no,ny,ps,fa,pl,pt,pa,ro,ru,sm,gd,sr,st,si,sk,sl,so,es,su,sw,sv,tl,tg,ta,tt,te,th,tr,tk,uk,ur,ug,uz,vi,cy,xh,yi,yo,zu',
-            autoDisplay: false
-        }, 'google_translate_element');
+        new google.translate.TranslateElement(
+            {
+                pageLanguage: 'en',
+                autoDisplay: false
+            },
+            'google_translate_element'
+        );
 
         const languageMap = {
-            "af": "Afrikaans", "sq": "Albanian", "am": "Amharic", "ar": "Arabic", "hy": "Armenian", "az": "Azerbaijani",
-            "eu": "Basque", "be": "Belarusian", "bn": "Bengali", "bg": "Bulgarian", "ca": "Catalan", "ceb": "Cebuano",
-            "zh-CN": "Chinese (Simplified)", "zh-TW": "Chinese (Traditional)", "co": "Corsican", "hr": "Croatian",
-            "cs": "Czech", "da": "Danish", "nl": "Dutch", "en": "English", "eo": "Esperanto", "et": "Estonian",
-            "fi": "Finnish", "fr": "French", "fy": "Frisian", "gl": "Galician", "ka": "Georgian", "de": "German",
-            "el": "Greek", "gu": "Gujarati", "ht": "Haitian Creole", "ha": "Hausa", "haw": "Hawaiian", "iw": "Hebrew",
-            "hi": "Hindi", "hmn": "Hmong", "hu": "Hungarian", "is": "Icelandic", "ig": "Igbo", "id": "Indonesian",
-            "ga": "Irish", "it": "Italian", "ja": "Japanese", "jw": "Javanese", "kn": "Kannada", "kk": "Kazakh",
-            "km": "Khmer", "rw": "Kinyarwanda", "ko": "Korean", "ku": "Kurdish", "ky": "Kyrgyz", "lo": "Lao",
-            "la": "Latin", "lv": "Latvian", "lt": "Lithuanian", "lb": "Luxembourgish", "mk": "Macedonian",
-            "mg": "Malagasy", "ms": "Malay", "ml": "Malayalam", "mt": "Maltese", "mi": "Maori", "mr": "Marathi",
-            "mn": "Mongolian", "my": "Burmese", "ne": "Nepali", "no": "Norwegian", "ny": "Nyanja",
-            "ps": "Pashto", "fa": "Persian", "pl": "Polish", "pt": "Portuguese", "pa": "Punjabi",
-            "ro": "Romanian", "ru": "Russian", "sm": "Samoan", "gd": "Scots Gaelic", "sr": "Serbian",
-            "st": "Sesotho", "si": "Sinhala", "sk": "Slovak", "sl": "Slovenian", "so": "Somali", "es": "Spanish",
-            "su": "Sundanese", "sw": "Swahili", "sv": "Swedish", "tl": "Tagalog", "tg": "Tajik", "ta": "Tamil",
-            "tt": "Tatar", "te": "Telugu", "th": "Thai", "tr": "Turkish", "tk": "Turkmen", "uk": "Ukrainian",
-            "ur": "Urdu", "ug": "Uyghur", "uz": "Uzbek", "vi": "Vietnamese", "cy": "Welsh", "xh": "Xhosa",
-            "yi": "Yiddish", "yo": "Yoruba", "zu": "Zulu"
-        };
+                "af": "Afrikaans", "sq": "Albanian", "am": "Amharic", "ar": "Arabic", "hy": "Armenian", "az": "Azerbaijani",
+                "eu": "Basque", "be": "Belarusian", "bn": "Bengali", "bg": "Bulgarian", "ca": "Catalan", "ceb": "Cebuano",
+                "zh-CN": "Chinese (Simplified)",
+                "zh-TW": "Chinese (Traditional)",
+                "co": "Corsican",
+                "hr": "Croatian",
+                "cs": "Czech",
+                "da": "Danish",
+                "nl": "Dutch",
+                "en": "English",
+                "eo": "Esperanto",
+                "et": "Estonian",
+                "fi": "Finnish",
+                "fr": "French",
+                "fy": "Frisian",
+                "gl": "Galician",
+                "ka": "Georgian",
+                "de": "German",
+                "el": "Greek",
+                "gu": "Gujarati",
+                "ht": "Haitian Creole",
+                "ha": "Hausa",
+                "haw": "Hawaiian",
+                "iw": "Hebrew",
+                "hi": "Hindi",
+                "hmn": "Hmong",
+                "hu": "Hungarian",
+                "is": "Icelandic",
+                "ig": "Igbo",
+                "id": "Indonesian",
+                "ga": "Irish",
+                "it": "Italian",
+                "ja": "Japanese",
+                "jw": "Javanese",
+                "kn": "Kannada",
+                "kk": "Kazakh",
+                "km": "Khmer",
+                "rw": "Kinyarwanda",
+                "ko": "Korean",
+                "ku": "Kurdish",
+                "ky": "Kyrgyz",
+                "lo": "Lao",
+                "la": "Latin",
+                "lv": "Latvian",
+                "lt": "Lithuanian",
+                "lb": "Luxembourgish",
+                "mk": "Macedonian",
+                "mg": "Malagasy",
+                "ms": "Malay",
+                "ml": "Malayalam",
+                "mt": "Maltese",
+                "mi": "Maori",
+                "mr": "Marathi",
+                "mn": "Mongolian",
+                "my": "Myanmar (Burmese)",
+                "ne": "Nepali",
+                "no": "Norwegian",
+                "ny": "Nyanja (Chichewa)",
+                "ps": "Pashto",
+                "fa": "Persian",
+                "pl": "Polish",
+                "pt": "Portuguese",
+                "pa": "Punjabi",
+                "ro": "Romanian",
+                "ru": "Russian",
+                "sm": "Samoan",
+                "gd": "Scots Gaelic",
+                "sr": "Serbian",
+                "st": "Sesotho",
+                "si": "Sinhala",
+                "sk": "Slovak",
+                "sl": "Slovenian",
+                "so": "Somali",
+                "es": "Spanish",
+                "su": "Sundanese",
+                "sw": "Swahili",
+                "sv": "Swedish",
+                "tl": "Tagalog (Filipino)",
+                "tg": "Tajik",
+                "ta": "Tamil",
+                "tt": "Tatar",
+                "te": "Telugu",
+                "th": "Thai",
+                "tr": "Turkish",
+                "tk": "Turkmen",
+                "uk": "Ukrainian",
+                "ur": "Urdu",
+                "ug": "Uyghur",
+                "uz": "Uzbek",
+                "vi": "Vietnamese",
+                "cy": "Welsh",
+                "xh": "Xhosa",
+                "yi": "Yiddish",
+                "yo": "Yoruba",
+                "zu": "Zulu"
+            };
 
-        // Populate custom dropdown
-        function populateLanguageDropdown() {
-            let dropdown = document.getElementById("languageSelector");
+        function populateDropdown(dropdownId) {
+            const dropdown = document.getElementById(dropdownId);
             if (!dropdown) return;
-
-            let included = document
-                .querySelector(".goog-te-combo")
-                ?.innerHTML;
 
             dropdown.innerHTML = "";
 
-            Object.entries(languageMap).forEach(([code, name]) => {
-                let option = document.createElement("option");
+            Object.entries(languageMap).forEach(([code, label]) => {
+                const option = document.createElement("option");
                 option.value = code;
-                option.textContent = name;
+                option.textContent = label;
                 if (code === "en") option.selected = true;
                 dropdown.appendChild(option);
             });
         }
 
-        // Populate after translate loads
-        setTimeout(populateLanguageDropdown, 1500);
+        populateDropdown("languageSelector");
+        populateDropdown("languageSelectorMobile");
     }
 
-    // Trigger translation manually
-    function changeLanguage(langCode) {
-        const translateCombo = document.querySelector(".goog-te-combo");
-        if (translateCombo) {
-            translateCombo.value = langCode;
-            translateCombo.dispatchEvent(new Event("change"));
+    function changeLanguage(lang) {
+        const combo = document.querySelector(".goog-te-combo");
+        if (combo) {
+            combo.value = lang;
+            combo.dispatchEvent(new Event("change"));
         }
     }
 </script>
@@ -181,30 +253,27 @@
                             class="form-select form-select-sm"
                             style="width: 70px; padding: 3px; font-size: 13px; border-radius: 5px;"
                         >
-                            <option>Loading…</option>
+                            <option>Lang</option>
                         </select>
                     </li>
 
 
-                    <li class="nav-item mobile-lang" style="display: none; padding: 10px 20px;">
+
+                </ul>
+                 <li class="nav-item mobile-lang">
                         <select 
                             id="languageSelectorMobile"
                             onchange="changeLanguage(this.value)"
                             class="form-select form-select-sm"
-                            style="width: 100%; padding: 5px; font-size: 15px; border-radius: 6px;"
-                        >
-                            <option>Loading…</option>
-                        </select>
-                    </li>
-
-
-                </ul>
+                            style="width: 65px; padding: 3px; font-size: 12px;"
+                        ></select>
+                </li>
                 <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
             </nav>
             {% if user.is_authenticated %}
-                <a class="cta-btn" href="{% url 'logout' %}">Logout</a>
+                <a class="cta-btn d-none d-md-inline-block" href="{% url 'logout' %}">Logout</a>
             {% else %}
-                <a class="cta-btn" href="{% url 'login' %}">Login</a>
+                <a class="cta-btn d-none d-md-inline-block" href="{% url 'login' %}">Login</a>
             {% endif %}
             
 

@@ -12,4 +12,4 @@ class NotificationsConfig(AppConfig):
     name = "notifications"
 
     def ready(self):
-        from .signals import kyc, withdrawal, deposit, investment, p2p
+        from .signals import kyc, withdrawal, deposit, p2p
