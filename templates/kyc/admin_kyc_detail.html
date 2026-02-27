@@ -1,0 +1,190 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+{% block title %}Review KYC — {{ kyc.user.email }}{% endblock %}
+
+{% block banner-slider %}
+<aside id="sidebar" class="sidebar bg-dark text-white shadow-lg">
+  <ul class="sidebar-nav list-unstyled mt-3" id="sidebar-nav">
+    <li class="nav-item mb-2">
+      <a class="nav-link d-flex align-items-center px-3 py-2 rounded" href="{% url 'user_dashboard' %}">
+        <i class="bi bi-speedometer2 me-2 fs-5"></i><span>Dashboard</span>
+      </a>
+    </li>
+    <li class="nav-item mb-1">
+      <a class="nav-link active d-flex align-items-center px-3 py-2 rounded" href="{% url 'kyc:admin_kyc_list' %}">
+        <i class="bi bi-shield-check me-2 fs-5 text-success"></i><span>KYC Approval</span>
+      </a>
+    </li>
+    <li class="nav-item mt-4 mb-3">
+      <a class="nav-link collapsed d-flex align-items-center px-3 py-2 rounded" href="{% url 'logout' %}">
+        <i class="bi bi-box-arrow-right me-2 fs-5 text-danger"></i><span>Logout</span>
+      </a>
+    </li>
+  </ul>
+</aside>
+{% endblock banner-slider %}
+
+{% block main-content %}
+<div class="pagetitle">
+  <h1>Review KYC</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'kyc:admin_kyc_list' %}">KYC List</a></li>
+      <li class="breadcrumb-item active">{{ kyc.user.email }}</li>
+    </ol>
+  </nav>
+</div>
+
+<div class="container py-4">
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="row g-4">
+
+    <!-- User Info -->
+    <div class="col-md-5">
+      <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+        <h5 class="fw-bold mb-3"><i class="bi bi-person-circle me-2"></i>User Information</h5>
+        <table class="table table-borderless table-sm">
+          <tr><th class="text-muted w-40">Full Name</th><td>{{ kyc.full_name|default:kyc.user.full_name|default:"—" }}</td></tr>
+          <tr><th class="text-muted">Email</th><td>{{ kyc.user.email }}</td></tr>
+          <tr><th class="text-muted">Joined</th><td>{{ kyc.user.date_joined|date:"M d, Y" }}</td></tr>
+          <tr><th class="text-muted">Submitted</th><td>{{ kyc.submitted_at|date:"M d, Y H:i" }}</td></tr>
+          <tr>
+            <th class="text-muted">Status</th>
+            <td>
+              {% if kyc.status == 'approved' %}
+                <span class="badge bg-success fs-6">Approved</span>
+              {% elif kyc.status == 'rejected' %}
+                <span class="badge bg-danger fs-6">Rejected</span>
+              {% else %}
+                <span class="badge bg-warning text-dark fs-6">Pending</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% if kyc.reviewed_by %}
+          <tr><th class="text-muted">Reviewed by</th><td>{{ kyc.reviewed_by.email }}</td></tr>
+          <tr><th class="text-muted">Reviewed at</th><td>{{ kyc.reviewed_at|date:"M d, Y H:i" }}</td></tr>
+          {% endif %}
+          {% if kyc.rejection_reason %}
+          <tr>
+            <th class="text-muted">Rejection reason</th>
+            <td class="text-danger">{{ kyc.rejection_reason }}</td>
+          </tr>
+          {% endif %}
+        </table>
+      </div>
+    </div>
+
+    <!-- Documents -->
+    <div class="col-md-7">
+      <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+        <h5 class="fw-bold mb-3"><i class="bi bi-file-earmark-text me-2"></i>Submitted Documents</h5>
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label fw-semibold">ID Document</label>
+            <div>
+              <a href="{{ kyc.id_document.url }}" target="_blank" class="btn btn-outline-primary">
+                <i class="bi bi-eye me-1"></i> Open ID Document
+              </a>
+              <small class="text-muted ms-2">(Opens in new tab — may be PDF or image)</small>
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold">Selfie with ID</label>
+            <div>
+              <img src="{{ kyc.selfie.url }}" alt="Selfie"
+                class="img-fluid rounded-3 shadow-sm"
+                style="max-height: 300px; object-fit: cover; cursor: pointer;"
+                onclick="window.open('{{ kyc.selfie.url }}', '_blank')"
+                title="Click to open full size">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    {% if kyc.status == 'pending' %}
+    <div class="col-12">
+      <div class="card border-0 shadow-sm rounded-4 p-4">
+        <h5 class="fw-bold mb-3"><i class="bi bi-check2-circle me-2"></i>Review Decision</h5>
+        <div class="d-flex gap-3 flex-wrap">
+
+          <!-- Approve -->
+          <form method="post" action="{% url 'kyc:approve_kyc' kyc.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success btn-lg px-5"
+              onclick="return confirm('Approve KYC for {{ kyc.user.email }}?')">
+              <i class="bi bi-check-circle me-2"></i>Approve KYC
+            </button>
+          </form>
+
+          <!-- Reject Button -->
+          <button type="button" class="btn btn-danger btn-lg px-5"
+            data-bs-toggle="modal" data-bs-target="#rejectModal">
+            <i class="bi bi-x-circle me-2"></i>Reject KYC
+          </button>
+
+        </div>
+      </div>
+    </div>
+    {% elif kyc.status == 'approved' %}
+    <div class="col-12">
+      <div class="alert alert-success rounded-4">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        This KYC has been <strong>approved</strong>.
+        <a href="{% url 'kyc:admin_kyc_list' %}" class="btn btn-sm btn-outline-success ms-3">Back to List</a>
+      </div>
+    </div>
+    {% elif kyc.status == 'rejected' %}
+    <div class="col-12">
+      <div class="alert alert-danger rounded-4">
+        <i class="bi bi-x-circle-fill me-2"></i>
+        This KYC has been <strong>rejected</strong>. Reason: {{ kyc.rejection_reason }}
+        <a href="{% url 'kyc:admin_kyc_list' %}" class="btn btn-sm btn-outline-danger ms-3">Back to List</a>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="{% url 'kyc:reject_kyc' kyc.pk %}">
+        {% csrf_token %}
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title">Reject KYC — {{ kyc.user.email }}</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Rejection reason <span class="text-danger">*</span></label>
+            <textarea name="rejection_reason" class="form-control" rows="3" required
+              placeholder="e.g. ID document is blurry. Please resubmit a clearer photo."></textarea>
+            <small class="text-muted">This message will be visible to the user.</small>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Internal notes (optional)</label>
+            <textarea name="admin_notes" class="form-control" rows="2"
+              placeholder="Not shown to the user…"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger">Confirm Rejection</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

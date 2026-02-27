@@ -1,488 +1,326 @@
 <!DOCTYPE html>
 {% load static %}
 <html lang="en">
-
 <head>
-    <meta charset="utf-8">
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>CrownBridge</title>
-    <meta name="description" content="">
-    <meta name="keywords" content="">
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>CrownBridge</title>
+  <meta name="description" content="">
+  <meta name="keywords" content="">
 
-    <!-- Favicons -->
-    <link href="{% static 'assets/img/logoe.png' %}" rel="icon">
-    <link href="{% static 'assets/img/logoe.png' %}" rel="apple-touch-icon">
+  <link href="{% static 'assets/img/logoe.png' %}" rel="icon">
+  <link href="{% static 'assets/img/logoe.png' %}" rel="apple-touch-icon">
+  <link href="https://fonts.googleapis.com" rel="preconnect">
+  <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Ubuntu:wght@300;400;500;700&family=Nunito:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="{% static 'assets/vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="{% static 'assets/vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
+  <link href="{% static 'assets/vendor/aos/aos.css' %}" rel="stylesheet">
+  <link href="{% static 'assets/vendor/swiper/swiper-bundle.min.css' %}" rel="stylesheet">
+  <link href="{% static 'assets/vendor/glightbox/css/glightbox.min.css' %}" rel="stylesheet">
+  <link href="{% static 'assets/css/main.css' %}" rel="stylesheet">
 
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com" rel="preconnect">
-    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&family=Nunito:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+  <style>
+    /* CSS first line of defence */
+    .goog-te-banner-frame, iframe.goog-te-banner-frame { display:none!important; height:0!important; }
+    .skiptranslate { display:none!important; height:0!important; overflow:hidden!important; }
+    body { top:0!important; }
+    #google_translate_element { display:none!important; height:0!important; overflow:hidden!important; }
 
-    <!-- Vendor CSS Files -->
-    <link href="{% static 'assets/vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
-    <link href="{% static 'assets/vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
-    <link href="{% static 'assets/vendor/aos/aos.css' %}" rel="stylesheet">
-    <link href="{% static 'assets/vendor/swiper/swiper-bundle.min.css' %}" rel="stylesheet">
-    <link href="{% static 'assets/vendor/glightbox/css/glightbox.min.css' %}" rel="stylesheet">
+    /* Desktop language selector inside navmenu */
+    li.nav-lang-item { display:flex; align-items:center; }
+    li.nav-lang-item select {
+      padding:5px 8px; font-size:12px; border-radius:6px;
+      border:1px solid rgba(255,255,255,0.3); background:transparent;
+      color:var(--nav-color,#fff); cursor:pointer; outline:none; min-width:120px;
+      transition:border-color 0.2s;
+    }
+    li.nav-lang-item select:hover,
+    li.nav-lang-item select:focus { border-color:#ea7c00; }
+    li.nav-lang-item select option { background:#1a1a2e; color:#fff; }
 
-    <!-- Main CSS File -->
-    <link href="{% static 'assets/css/main.css' %}" rel="stylesheet">
+    /* Mobile: hide desktop selector, show mobile block inside drawer */
+    @media (max-width:1199px) {
+      li.nav-lang-item { display:none!important; }
+      .mobile-lang-block {
+        padding:10px 15px;
+        border-top:1px solid rgba(255,255,255,0.1);
+      }
+      .mobile-lang-block select {
+        width:100%; padding:7px 10px; font-size:13px;
+        border-radius:6px; border:1px solid #ccc;
+        background:#fff; color:#333; cursor:pointer; outline:none;
+      }
+    }
+    @media (min-width:1200px) {
+      .mobile-lang-block { display:none!important; }
+    }
+  </style>
 
-    <script>
-        // Stop video playback when modal is closed
-        const modals = document.querySelectorAll('.modal');
-        modals.forEach(modal => {
-            modal.addEventListener('hidden.bs.modal', () => {
-            const iframe = modal.querySelector('iframe');
-            if (iframe) {
-                const src = iframe.src;
-                iframe.src = src; // resets the video
-            }
-            });
-        });
-    </script>
-
-
-    <!-- Hidden Google Translate container -->
-    <div id="google_translate_element" style="display:none;"></div>
-
-<script type="text/javascript">
+  <div id="google_translate_element"></div>
+  <script>
     function googleTranslateElementInit() {
-        new google.translate.TranslateElement(
-            {
-                pageLanguage: 'en',
-                autoDisplay: false
-            },
-            'google_translate_element'
-        );
-
-        const languageMap = {
-                "af": "Afrikaans", "sq": "Albanian", "am": "Amharic", "ar": "Arabic", "hy": "Armenian", "az": "Azerbaijani",
-                "eu": "Basque", "be": "Belarusian", "bn": "Bengali", "bg": "Bulgarian", "ca": "Catalan", "ceb": "Cebuano",
-                "zh-CN": "Chinese (Simplified)",
-                "zh-TW": "Chinese (Traditional)",
-                "co": "Corsican",
-                "hr": "Croatian",
-                "cs": "Czech",
-                "da": "Danish",
-                "nl": "Dutch",
-                "en": "English",
-                "eo": "Esperanto",
-                "et": "Estonian",
-                "fi": "Finnish",
-                "fr": "French",
-                "fy": "Frisian",
-                "gl": "Galician",
-                "ka": "Georgian",
-                "de": "German",
-                "el": "Greek",
-                "gu": "Gujarati",
-                "ht": "Haitian Creole",
-                "ha": "Hausa",
-                "haw": "Hawaiian",
-                "iw": "Hebrew",
-                "hi": "Hindi",
-                "hmn": "Hmong",
-                "hu": "Hungarian",
-                "is": "Icelandic",
-                "ig": "Igbo",
-                "id": "Indonesian",
-                "ga": "Irish",
-                "it": "Italian",
-                "ja": "Japanese",
-                "jw": "Javanese",
-                "kn": "Kannada",
-                "kk": "Kazakh",
-                "km": "Khmer",
-                "rw": "Kinyarwanda",
-                "ko": "Korean",
-                "ku": "Kurdish",
-                "ky": "Kyrgyz",
-                "lo": "Lao",
-                "la": "Latin",
-                "lv": "Latvian",
-                "lt": "Lithuanian",
-                "lb": "Luxembourgish",
-                "mk": "Macedonian",
-                "mg": "Malagasy",
-                "ms": "Malay",
-                "ml": "Malayalam",
-                "mt": "Maltese",
-                "mi": "Maori",
-                "mr": "Marathi",
-                "mn": "Mongolian",
-                "my": "Myanmar (Burmese)",
-                "ne": "Nepali",
-                "no": "Norwegian",
-                "ny": "Nyanja (Chichewa)",
-                "ps": "Pashto",
-                "fa": "Persian",
-                "pl": "Polish",
-                "pt": "Portuguese",
-                "pa": "Punjabi",
-                "ro": "Romanian",
-                "ru": "Russian",
-                "sm": "Samoan",
-                "gd": "Scots Gaelic",
-                "sr": "Serbian",
-                "st": "Sesotho",
-                "si": "Sinhala",
-                "sk": "Slovak",
-                "sl": "Slovenian",
-                "so": "Somali",
-                "es": "Spanish",
-                "su": "Sundanese",
-                "sw": "Swahili",
-                "sv": "Swedish",
-                "tl": "Tagalog (Filipino)",
-                "tg": "Tajik",
-                "ta": "Tamil",
-                "tt": "Tatar",
-                "te": "Telugu",
-                "th": "Thai",
-                "tr": "Turkish",
-                "tk": "Turkmen",
-                "uk": "Ukrainian",
-                "ur": "Urdu",
-                "ug": "Uyghur",
-                "uz": "Uzbek",
-                "vi": "Vietnamese",
-                "cy": "Welsh",
-                "xh": "Xhosa",
-                "yi": "Yiddish",
-                "yo": "Yoruba",
-                "zu": "Zulu"
-            };
-
-        function populateDropdown(dropdownId) {
-            const dropdown = document.getElementById(dropdownId);
-            if (!dropdown) return;
-
-            dropdown.innerHTML = "";
-
-            Object.entries(languageMap).forEach(([code, label]) => {
-                const option = document.createElement("option");
-                option.value = code;
-                option.textContent = label;
-                if (code === "en") option.selected = true;
-                dropdown.appendChild(option);
-            });
-        }
-
-        populateDropdown("languageSelector");
-        populateDropdown("languageSelectorMobile");
+      new google.translate.TranslateElement({ pageLanguage:"en", autoDisplay:false }, "google_translate_element");
     }
 
     function changeLanguage(lang) {
-        const combo = document.querySelector(".goog-te-combo");
-        if (combo) {
-            combo.value = lang;
-            combo.dispatchEvent(new Event("change"));
-        }
+      ["languageSelector","languageSelectorMobile"].forEach(function(id){
+        var el = document.getElementById(id); if(el) el.value = lang;
+      });
+      if (lang === "en") {
+        document.cookie = "googtrans=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+        document.cookie = "googtrans=; path=/; domain=." + location.hostname + "; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+        location.reload(); return;
+      }
+      var val = "/en/" + lang;
+      document.cookie = "googtrans=" + val + "; path=/;";
+      document.cookie = "googtrans=" + val + "; path=/; domain=." + location.hostname + ";";
+      function trigger() {
+        var combo = document.querySelector(".goog-te-combo");
+        if (combo) { combo.value = lang; combo.dispatchEvent(new Event("change")); }
+        else { setTimeout(trigger, 300); }
+      }
+      trigger();
     }
-</script>
-
-
-
-
-
-
+  </script>
 </head>
 
 <body class="index-page">
 
-    <!-- TradingView Crypto Ticker -->
-        <section id="crypto-ticker" class="bg-dark text-white py-2">
-        <div class="container-fluid px-4">
-            <div class="tradingview-widget-container">
-            <div class="tradingview-widget-container__widget"></div>
-            </div>
-        </div>
-        </section>
-
-        <script type="application/json" id="tradingview-config">
-        {
-        "symbols": [
-            { "proName": "BINANCE:BTCUSDT", "title": "BTC/USDT" },
-            { "proName": "BINANCE:ETHUSDT", "title": "ETH/USDT" },
-            { "proName": "BINANCE:SOLUSDT", "title": "SOL/USDT" },
-            { "proName": "BINANCE:XRPUSDT", "title": "XRP/USDT" },
-            { "proName": "BINANCE:BNBUSDT", "title": "BNB/USDT" },
-            { "proName": "BINANCE:DOGEUSDT", "title": "DOGE/USDT" },
-            { "proName": "BINANCE:ADAUSDT", "title": "ADA/USDT" },
-            { "proName": "BINANCE:TRXUSDT", "title": "TRX/USDT" }
-        ],
-        "showSymbolLogo": true,
-        "colorTheme": "dark",
-        "isTransparent": true,
-        "displayMode": "regular",
-        "locale": "en"
-        }
-        </script>
-
-        <script async src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js"></script>
-
-
-
-    <header id="header" class="header d-flex align-items-center fixed-top">
-        <div class="container position-relative d-flex align-items-center justify-content-between">
-
-            <a href="index.html" class="logo d-flex align-items-center me-auto me-xl-0">
-                <!-- Uncomment the line below if you also wish to use an image logo -->
-                <img src="{% static 'assets/img/logoe.png' %}" alt="">
-                <h1 class="sitename">CrownBridge</h1><span>.</span>
-            </a>
-
-            <nav id="navmenu" class="navmenu">
-                <ul>
-                    <li><a href="#hero" class="active">Home</a></li>
-                    <li><a href="#about">About</a></li>
-                    {% if user.is_authenticated %}
-                    <li><a href="{% url 'user_dashboard' %}">Dashboard</a></li>
-                    <li><a href="{% url 'profile' %}">Profile</a></li>
-                    {% if user.is_staff or user.is_superuser %}
-                    <li><a href="{% url 'payment:admin_pending_withdrawals' %}">Withdrawals</a></li>
-                    <li><a href="{% url 'kyc:admin_kyc_list' %}">KYC</a></li>
-                    {% endif %}
-                    <li><a href="#contact">Contact</a></li>
-                    {% endif %}
-                    <li class="nav-item d-flex align-items-center nav-lang-selector desktop-lang">
-                        <select 
-                            id="languageSelector"
-                            onchange="changeLanguage(this.value)"
-                            class="form-select form-select-sm"
-                            style="width: 70px; padding: 3px; font-size: 13px; border-radius: 5px;"
-                        >
-                            <option>Lang</option>
-                        </select>
-                    </li>
-
-
-
-                </ul>
-                 <li class="nav-item mobile-lang">
-                        <select 
-                            id="languageSelectorMobile"
-                            onchange="changeLanguage(this.value)"
-                            class="form-select form-select-sm"
-                            style="width: 65px; padding: 3px; font-size: 12px;"
-                        ></select>
-                </li>
-                <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
-            </nav>
-            {% if user.is_authenticated %}
-                <a class="cta-btn d-none d-md-inline-block" href="{% url 'logout' %}">Logout</a>
-            {% else %}
-                <a class="cta-btn d-none d-md-inline-block" href="{% url 'login' %}">Login</a>
-            {% endif %}
-            
-
-        </div>
-    </header>
-
-    <div class="container mt-4">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
+  <!-- TradingView Ticker -->
+  <section id="crypto-ticker" class="bg-dark text-white py-2">
+    <div class="container-fluid px-4">
+      <div class="tradingview-widget-container">
+        <div class="tradingview-widget-container__widget"></div>
+      </div>
     </div>
+  </section>
+  <script type="application/json" id="tradingview-config">
+  {"symbols":[{"proName":"BINANCE:BTCUSDT","title":"BTC/USDT"},{"proName":"BINANCE:ETHUSDT","title":"ETH/USDT"},{"proName":"BINANCE:SOLUSDT","title":"SOL/USDT"},{"proName":"BINANCE:XRPUSDT","title":"XRP/USDT"},{"proName":"BINANCE:BNBUSDT","title":"BNB/USDT"},{"proName":"BINANCE:DOGEUSDT","title":"DOGE/USDT"},{"proName":"BINANCE:ADAUSDT","title":"ADA/USDT"},{"proName":"BINANCE:TRXUSDT","title":"TRX/USDT"}],"showSymbolLogo":true,"colorTheme":"dark","isTransparent":true,"displayMode":"regular","locale":"en"}
+  </script>
+  <script async src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js"></script>
 
+  <header id="header" class="header d-flex align-items-center fixed-top">
+    <div class="container position-relative d-flex align-items-center justify-content-between">
 
-    <main class="main">
+      <a href="{% url 'guest_home' %}" class="logo d-flex align-items-center me-auto me-xl-0">
+        <img src="{% static 'assets/img/logoe.png' %}" alt="">
+        <h1 class="sitename">CrownBridge</h1><span>.</span>
+      </a>
 
-    
-        {% block banner-slider %}{% endblock banner-slider %}
-        {% block information %}{% endblock information %}    
-        {% block main-content %}{% endblock main-content %}
-        {% block admin_content %}{% endblock admin_content %}
-    
-    
-    </main>
+      <nav id="navmenu" class="navmenu">
+        <ul>
+          <li><a href="{% url 'home' %}" class="active">Home</a></li>
+          <li><a href="#about">About</a></li>
+          {% if user.is_authenticated %}
+          <li><a href="{% url 'user_dashboard' %}">Dashboard</a></li>
+          <li><a href="{% url 'profile' %}">Profile</a></li>
+          {% if user.is_staff or user.is_superuser %}
+          <li><a href="{% url 'payment:admin_pending_withdrawals' %}">Withdrawals</a></li>
+          <li><a href="{% url 'kyc:admin_kyc_list' %}">KYC</a></li>
+          {% endif %}
+          <li><a href="#contact">Contact</a></li>
+          {% endif %}
+          <!-- Desktop language selector as a nav list item -->
+          <li class="nav-lang-item">
+            <select id="languageSelector" onchange="changeLanguage(this.value)" title="Translate">
+              <option value="en">&#127760; English</option>
+              <option value="fr">&#127467;&#127479; French</option>
+              <option value="es">&#127466;&#127480; Spanish</option>
+              <option value="de">&#127465;&#127466; German</option>
+              <option value="it">&#127470;&#127481; Italian</option>
+              <option value="pt">&#127477;&#127481; Portuguese</option>
+              <option value="ru">&#127479;&#127482; Russian</option>
+              <option value="zh-CN">&#127464;&#127475; Chinese</option>
+              <option value="ar">&#127480;&#127462; Arabic</option>
+              <option value="hi">&#127470;&#127475; Hindi</option>
+              <option value="ja">&#127471;&#127477; Japanese</option>
+              <option value="ko">&#127472;&#127479; Korean</option>
+              <option value="tr">&#127481;&#127479; Turkish</option>
+              <option value="nl">&#127475;&#127473; Dutch</option>
+              <option value="pl">&#127477;&#127473; Polish</option>
+              <option value="sv">&#127480;&#127466; Swedish</option>
+              <option value="uk">&#127482;&#127462; Ukrainian</option>
+              <option value="id">&#127470;&#127465; Indonesian</option>
+              <option value="th">&#127481;&#127469; Thai</option>
+              <option value="vi">&#127483;&#127475; Vietnamese</option>
+              <option value="sw">&#127472;&#127466; Swahili</option>
+              <option value="ha">&#127475;&#127468; Hausa</option>
+              <option value="yo">&#127475;&#127468; Yoruba</option>
+              <option value="ig">&#127475;&#127468; Igbo</option>
+              <option value="am">&#127466;&#127481; Amharic</option>
+              <option value="so">&#127480;&#127476; Somali</option>
+            </select>
+          </li>
+        </ul>
 
-
-
-
-    <footer id="footer" class="footer dark-background">
-
-        <div class="container">
-            <div class="row gy-5">
-
-                <div class="col-lg-4">
-                    <div class="footer-content">
-                        <a href="index.html" class="logo d-flex align-items-center mb-4">
-                        <span class="sitename">CrownBridge</span>
-                        </a>
-                        <p class="mb-4">Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae. Donec velit neque auctor sit amet aliquam vel ullamcorper sit amet ligula.</p>
-
-                        <div class="newsletter-form">
-                            <h5>Stay Updated</h5>
-                            <form action="forms/newsletter.php" method="post" class="php-email-form">
-                                <div class="input-group">
-                                    <input type="email" name="email" class="form-control" placeholder="Enter your email" required="">
-                                    <button type="submit" class="btn-subscribe">
-                                        <i class="bi bi-send"></i>
-                                    </button>
-                                </div>
-                                <div class="loading">Loading</div>
-                                <div class="error-message"></div>
-                                <div class="sent-message">Thank you for subscribing!</div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-2 col-6">
-                    <div class="footer-links">
-                        <h4>Investment</h4>
-                        <ul>
-                            <li><a href="#"><i class="bi bi-chevron-right"></i> About</a></li>
-                            <li><a href="#"><i class="bi bi-chevron-right"></i> Careers</a></li>
-                            <li><a href="#"><i class="bi bi-chevron-right"></i> Press</a></li>
-                            <li><a href="#"><i class="bi bi-chevron-right"></i> Blog</a></li>
-                            <li><a href="#"><i class="bi bi-chevron-right"></i> Contact</a></li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="col-lg-2 col-6">
-                    <div class="footer-links">
-                        <h4>Solutions</h4>
-                        <ul>
-                            <li><a href="#"><i class="bi bi-chevron-right"></i> Digital Strategy</a></li>
-                            <li><a href="#"><i class="bi bi-chevron-right"></i> Cloud Computing</a></li>
-                            <li><a href="#"><i class="bi bi-chevron-right"></i> Data Analytics</a></li>
-                            <li><a href="#"><i class="bi bi-chevron-right"></i> AI Solutions</a></li>
-                            <li><a href="#"><i class="bi bi-chevron-right"></i> Cybersecurity</a></li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="col-lg-4">
-                    <div class="footer-contact">
-                        <h4>Get in Touch</h4>
-                        <div class="contact-item">
-                            <div class="contact-icon">
-                                <i class="bi bi-geo-alt"></i>
-                            </div>
-                            <div class="contact-info">
-                                <p>87 Downing Avenue<br>London, <br>United Kingdom</p>
-                            </div>
-                        </div>
-
-                        <div class="contact-item">
-                            <div class="contact-icon">
-                                <i class="bi bi-telephone"></i>
-                            </div>
-                            <div class="contact-info">
-                                <p>+44 (212) 555-890</p>
-                            </div>
-                        </div>
-
-                        <div class="contact-item">
-                            <div class="contact-icon">
-                                <i class="bi bi-envelope"></i>
-                            </div>
-                            <div class="contact-info">
-                                <p>support@crownbridgeltd.com</p>
-                            </div>
-                        </div>
-
-                        <div class="social-links">
-                            <a href="#"><i class="bi bi-facebook"></i></a>
-                            <a href="#"><i class="bi bi-twitter-x"></i></a>
-                            <a href="#"><i class="bi bi-linkedin"></i></a>
-                            <a href="#"><i class="bi bi-youtube"></i></a>
-                            <a href="#"><i class="bi bi-github"></i></a>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
+        <!-- Mobile language selector — lives inside the nav drawer -->
+        <div class="mobile-lang-block">
+          <select id="languageSelectorMobile" onchange="changeLanguage(this.value)" title="Translate">
+            <option value="en">&#127760; English</option>
+            <option value="fr">&#127467;&#127479; French</option>
+            <option value="es">&#127466;&#127480; Spanish</option>
+            <option value="de">&#127465;&#127466; German</option>
+            <option value="it">&#127470;&#127481; Italian</option>
+            <option value="pt">&#127477;&#127481; Portuguese</option>
+            <option value="ru">&#127479;&#127482; Russian</option>
+            <option value="zh-CN">&#127464;&#127475; Chinese</option>
+            <option value="ar">&#127480;&#127462; Arabic</option>
+            <option value="hi">&#127470;&#127475; Hindi</option>
+            <option value="ko">&#127472;&#127479; Korean</option>
+            <option value="tr">&#127481;&#127479; Turkish</option>
+            <option value="sw">&#127472;&#127466; Swahili</option>
+            <option value="ha">&#127475;&#127468; Hausa</option>
+            <option value="yo">&#127475;&#127468; Yoruba</option>
+            <option value="ig">&#127475;&#127468; Igbo</option>
+            <option value="am">&#127466;&#127481; Amharic</option>
+          </select>
         </div>
 
-        <div class="footer-bottom">
-            <div class="container">
-                <div class="row align-items-center">
-                    <div class="col-lg-6">
-                        <div class="copyright">
-                            <p>© <span>Copyright</span> <strong class="px-1 sitename">CrownBridge</strong> <span>All Rights Reserved</span></p>
-                        </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <div class="footer-bottom-links">
-                            <a href="#">Privacy Policy</a>
-                            <a href="#">Terms of Service</a>
-                            <a href="#">Cookie Policy</a>
-                        </div>
-                        <div class="credits">
-                            Designed by <a href="#">Charles</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+      </nav>
 
-    </footer>
-
-    <!-- Floating Chat Button -->
-    <div id="support-btn" onclick="toggleChat()">💬</div>
-
-    <!-- Chat Popup -->
-    <div id="chat-popup">
-        <div id="chat-messages"></div>
-
-        <input type="text" id="chat-input" placeholder="Type your message..." onkeypress="if(event.key==='Enter') sendMessage()">
-        <button onclick="sendMessage()" class="btn btn-primary btn-sm mt-2" style="width:100%">Send</button>
+      {% if user.is_authenticated %}
+        <a class="cta-btn d-none d-md-inline-block" href="{% url 'logout' %}">Logout</a>
+      {% else %}
+        <a class="cta-btn d-none d-md-inline-block" href="{% url 'login' %}">Login</a>
+      {% endif %}
     </div>
+  </header>
 
-    <script>
-        function toggleChat() {
-            const popup = document.getElementById("chat-popup");
-            popup.style.display = popup.style.display === "flex" ? "none" : "flex";
-        }
+  <div class="container mt-4">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  </div>
 
-        function sendMessage() {
-            let msg = document.getElementById("chat-input").value;
-            if (!msg.trim()) return;
+  <main class="main">
+    {% block banner-slider %}{% endblock banner-slider %}
+    {% block information %}{% endblock information %}
+    {% block main-content %}{% endblock main-content %}
+    {% block admin_content %}{% endblock admin_content %}
+  </main>
 
-            // Display user message
-            let chatBox = document.getElementById("chat-messages");
-            chatBox.innerHTML += `<div class='user-msg'>${msg}</div>`;
-            chatBox.scrollTop = chatBox.scrollHeight;
+  <footer id="footer" class="footer dark-background">
+    <div class="container">
+      <div class="row gy-5">
+        <div class="col-lg-4">
+          <div class="footer-content">
+            <a href="index.html" class="logo d-flex align-items-center mb-4"><span class="sitename">CrownBridge</span></a>
+            <p class="mb-4">Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae.</p>
+            <div class="newsletter-form">
+              <h5>Stay Updated</h5>
+              <form action="forms/newsletter.php" method="post" class="php-email-form">
+                <div class="input-group">
+                  <input type="email" name="email" class="form-control" placeholder="Enter your email" required>
+                  <button type="submit" class="btn-subscribe"><i class="bi bi-send"></i></button>
+                </div>
+                <div class="loading">Loading</div>
+                <div class="error-message"></div>
+                <div class="sent-message">Thank you for subscribing!</div>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-2 col-6">
+          <div class="footer-links">
+            <h4>Investment</h4>
+            <ul>
+              <li><a href="#"><i class="bi bi-chevron-right"></i> About</a></li>
+              <li><a href="#"><i class="bi bi-chevron-right"></i> Careers</a></li>
+              <li><a href="#"><i class="bi bi-chevron-right"></i> Blog</a></li>
+              <li><a href="#"><i class="bi bi-chevron-right"></i> Contact</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-lg-2 col-6">
+          <div class="footer-links">
+            <h4>Solutions</h4>
+            <ul>
+              <li><a href="#"><i class="bi bi-chevron-right"></i> Digital Strategy</a></li>
+              <li><a href="#"><i class="bi bi-chevron-right"></i> Cloud Computing</a></li>
+              <li><a href="#"><i class="bi bi-chevron-right"></i> AI Solutions</a></li>
+              <li><a href="#"><i class="bi bi-chevron-right"></i> Cybersecurity</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="footer-contact">
+            <h4>Get in Touch</h4>
+            <div class="contact-item">
+              <div class="contact-icon"><i class="bi bi-geo-alt"></i></div>
+              <div class="contact-info"><p>87 Downing Avenue, London, United Kingdom</p></div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-icon"><i class="bi bi-telephone"></i></div>
+              <div class="contact-info"><p>+44 (212) 555-890</p></div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-icon"><i class="bi bi-envelope"></i></div>
+              <div class="contact-info"><p>support@crownbridgeltd.com</p></div>
+            </div>
+            <div class="social-links">
+              <a href="#"><i class="bi bi-facebook"></i></a>
+              <a href="#"><i class="bi bi-twitter-x"></i></a>
+              <a href="#"><i class="bi bi-linkedin"></i></a>
+              <a href="#"><i class="bi bi-youtube"></i></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-lg-6">
+            <p>&#169; Copyright <strong class="px-1 sitename">CrownBridge</strong> All Rights Reserved</p>
+          </div>
+          <div class="col-lg-6">
+            <div class="footer-bottom-links">
+              <a href="#">Privacy Policy</a>
+              <a href="#">Terms of Service</a>
+              <a href="#">Cookie Policy</a>
+            </div>
+            <div class="credits">Designed by <a href="#">Charles</a></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
 
-            document.getElementById("chat-input").value = "";
+  <div id="support-btn" onclick="toggleChat()">&#128172;</div>
+  <div id="chat-popup">
+    <div id="chat-messages"></div>
+    <input type="text" id="chat-input" placeholder="Type your message..." onkeypress="if(event.key==='Enter') sendMessage()">
+    <button onclick="sendMessage()" class="btn btn-primary btn-sm mt-2" style="width:100%">Send</button>
+  </div>
+  <script>
+    function toggleChat() {
+      var p = document.getElementById("chat-popup");
+      p.style.display = p.style.display === "flex" ? "none" : "flex";
+    }
+    function sendMessage() {
+      var msg = document.getElementById("chat-input").value;
+      if (!msg.trim()) return;
+      var box = document.getElementById("chat-messages");
+      box.innerHTML += "<div class='user-msg'>" + msg + "</div>";
+      box.scrollTop = box.scrollHeight;
+      document.getElementById("chat-input").value = "";
+      fetch("/support/chat/", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({message:msg}) })
+        .then(function(r){ return r.json(); })
+        .then(function(d){ box.innerHTML += "<div class='bot-msg'>" + (d.reply||"No response") + "</div>"; box.scrollTop = box.scrollHeight; })
+        .catch(function(){ box.innerHTML += "<div class='bot-msg' style='color:red;'>Error connecting</div>"; });
+    }
+  </script>
 
-            fetch("/support/chat/", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({message: msg})
-            })
-            .then(res => res.json())
-            .then(data => {
-                let reply = data.reply || "No response";
-
-                chatBox.innerHTML += `<div class='bot-msg'>${reply}</div>`;
-                chatBox.scrollTop = chatBox.scrollHeight;
-            })
-            .catch(() => {
-                chatBox.innerHTML += `<div class='bot-msg' style='color:red;'>Error connecting to support</div>`;
-                chatBox.scrollTop = chatBox.scrollHeight;
-            });
-        }
-    </script>
-
-
-  <!-- Scroll Top -->
   <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
-
-  <!-- Preloader -->
   <div id="preloader"></div>
 
-  <!-- Vendor JS Files -->
   <script src="{% static 'assets/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
   <script src="{% static 'assets/vendor/php-email-form/validate.js' %}"></script>
   <script src="{% static 'assets/vendor/aos/aos.js' %}"></script>
@@ -492,12 +330,55 @@
   <script src="{% static 'assets/vendor/isotope-layout/isotope.pkgd.min.js' %}"></script>
   <script src="{% static 'assets/vendor/glightbox/js/glightbox.min.js' %}"></script>
 
-    <!-- Google Translate Script -->
-    <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+  <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
-  <!-- Main JS File -->
+  <script>
+    // MutationObserver — destroys Google toolbar the instant it appears in DOM
+    (function killGoogleToolbar() {
+      function nuke() {
+        // Remove the banner iframe entirely from DOM
+        document.querySelectorAll(
+          '.goog-te-banner-frame, iframe.goog-te-banner-frame, iframe[name="google_translate_iframe"]'
+        ).forEach(function(el) { el.parentNode && el.parentNode.removeChild(el); });
+
+        // Collapse every .skiptranslate wrapper Google adds
+        document.querySelectorAll('.skiptranslate').forEach(function(el) {
+          el.style.setProperty('display',    'none',   'important');
+          el.style.setProperty('height',     '0',      'important');
+          el.style.setProperty('max-height', '0',      'important');
+          el.style.setProperty('overflow',   'hidden', 'important');
+          el.style.setProperty('visibility', 'hidden', 'important');
+        });
+
+        // Undo the inline top: 40px Google sets on <body>
+        if (document.body) {
+          document.body.style.setProperty('top', '0px', 'important');
+        }
+      }
+
+      nuke(); // run immediately
+
+      // Watch for any DOM change and re-nuke
+      var observer = new MutationObserver(nuke);
+      observer.observe(document.documentElement, {
+        childList:       true,
+        subtree:         true,
+        attributes:      true,
+        attributeFilter: ['style', 'class']
+      });
+    })();
+
+
+    // Restore dropdowns to saved language on page load
+    (function() {
+      var match = document.cookie.match(/(?:^|;)\s*googtrans=\/en\/([^;]+)/);
+      var lang = match ? decodeURIComponent(match[1]) : "en";
+      ["languageSelector","languageSelectorMobile"].forEach(function(id){
+        var el = document.getElementById(id); if(el) el.value = lang;
+      });
+    })();
+  </script>
+
   <script src="{% static 'assets/js/main.js' %}"></script>
-
 </body>
-
 </html>

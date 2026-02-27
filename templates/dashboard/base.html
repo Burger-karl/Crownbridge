@@ -1,24 +1,17 @@
 <!DOCTYPE html>
 {% load static %}
 <html lang="en">
-
 <head>
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
-
   <title>Dashboard - CrownBridge</title>
   <meta content="" name="description">
   <meta content="" name="keywords">
 
-    <!-- Favicons -->
-    <link href="{% static 'assets/img/logoe.png' %}" rel="icon">
-    <link href="{% static 'assets/img/logoe.png' %}" rel="apple-touch-icon">
-
-  <!-- Google Fonts -->
+  <link href="{% static 'assets/img/logoe.png' %}" rel="icon">
+  <link href="{% static 'assets/img/logoe.png' %}" rel="apple-touch-icon">
   <link href="https://fonts.gstatic.com" rel="preconnect">
   <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
-
-  <!-- Vendor CSS Files -->
   <link href="{% static 'assets/vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
   <link href="{% static 'assets/vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
   <link href="{% static 'assets/vendor/boxicons/css/boxicons.min.css' %}" rel="stylesheet">
@@ -26,374 +19,229 @@
   <link href="{% static 'assets/vendor/quill/quill.bubble.css' %}" rel="stylesheet">
   <link href="{% static 'assets/vendor/remixicon/remixicon.css' %}" rel="stylesheet">
   <link href="{% static 'assets/vendor/simple-datatables/style.css' %}" rel="stylesheet">
-
-  <!-- Template Main CSS File -->
   <link href="{% static 'assets/css/style.css' %}" rel="stylesheet">
 
+  <style>
+    /* Kill Google toolbar via CSS as first line of defence */
+    .goog-te-banner-frame, iframe.goog-te-banner-frame { display:none!important; height:0!important; }
+    .skiptranslate { display:none!important; height:0!important; overflow:hidden!important; }
+    body { top:0!important; }
+    #google_translate_element { display:none!important; height:0!important; overflow:hidden!important; }
 
-    <!-- Hidden Google Translate container -->
-    <div id="google_translate_element" style="display:none;"></div>
+    /* Language selector */
+    .lang-select-wrapper { display:flex; align-items:center; margin-left:8px; }
+    .lang-select-wrapper select {
+      width:120px; padding:4px 8px; font-size:12px; border-radius:6px;
+      border:1px solid #d0d7e8; background:#fff; color:#012970;
+      cursor:pointer; outline:none; transition:border-color 0.2s;
+    }
+    .lang-select-wrapper select:hover,
+    .lang-select-wrapper select:focus { border-color:#4154f1; }
+  </style>
 
-    <script type="text/javascript">
-        function googleTranslateElementInit() {
-            new google.translate.TranslateElement({
-                pageLanguage: 'en',
-                includedLanguages: 'af,sq,am,ar,hy,az,eu,be,bn,bg,ca,ceb,zh-CN,zh-TW,co,hr,cs,da,nl,en,eo,et,fi,fr,fy,gl,ka,de,el,gu,ht,ha,haw,iw,hi,hmn,hu,is,ig,id,ga,it,ja,jw,kn,kk,km,rw,ko,ku,ky,lo,la,lv,lt,lb,mk,mg,ms,ml,mt,mi,mr,mn,my,ne,no,ny,ps,fa,pl,pt,pa,ro,ru,sm,gd,sr,st,si,sk,sl,so,es,su,sw,sv,tl,tg,ta,tt,te,th,tr,tk,uk,ur,ug,uz,vi,cy,xh,yi,yo,zu',
-                autoDisplay: false
-            }, 'google_translate_element');
-        
-            const languageMap = {
-                "af": "Afrikaans", "sq": "Albanian", "am": "Amharic", "ar": "Arabic", "hy": "Armenian", "az": "Azerbaijani",
-                "eu": "Basque", "be": "Belarusian", "bn": "Bengali", "bg": "Bulgarian", "ca": "Catalan", "ceb": "Cebuano",
-                "zh-CN": "Chinese (Simplified)",
-                "zh-TW": "Chinese (Traditional)",
-                "co": "Corsican",
-                "hr": "Croatian",
-                "cs": "Czech",
-                "da": "Danish",
-                "nl": "Dutch",
-                "en": "English",
-                "eo": "Esperanto",
-                "et": "Estonian",
-                "fi": "Finnish",
-                "fr": "French",
-                "fy": "Frisian",
-                "gl": "Galician",
-                "ka": "Georgian",
-                "de": "German",
-                "el": "Greek",
-                "gu": "Gujarati",
-                "ht": "Haitian Creole",
-                "ha": "Hausa",
-                "haw": "Hawaiian",
-                "iw": "Hebrew",
-                "hi": "Hindi",
-                "hmn": "Hmong",
-                "hu": "Hungarian",
-                "is": "Icelandic",
-                "ig": "Igbo",
-                "id": "Indonesian",
-                "ga": "Irish",
-                "it": "Italian",
-                "ja": "Japanese",
-                "jw": "Javanese",
-                "kn": "Kannada",
-                "kk": "Kazakh",
-                "km": "Khmer",
-                "rw": "Kinyarwanda",
-                "ko": "Korean",
-                "ku": "Kurdish",
-                "ky": "Kyrgyz",
-                "lo": "Lao",
-                "la": "Latin",
-                "lv": "Latvian",
-                "lt": "Lithuanian",
-                "lb": "Luxembourgish",
-                "mk": "Macedonian",
-                "mg": "Malagasy",
-                "ms": "Malay",
-                "ml": "Malayalam",
-                "mt": "Maltese",
-                "mi": "Maori",
-                "mr": "Marathi",
-                "mn": "Mongolian",
-                "my": "Myanmar (Burmese)",
-                "ne": "Nepali",
-                "no": "Norwegian",
-                "ny": "Nyanja (Chichewa)",
-                "ps": "Pashto",
-                "fa": "Persian",
-                "pl": "Polish",
-                "pt": "Portuguese",
-                "pa": "Punjabi",
-                "ro": "Romanian",
-                "ru": "Russian",
-                "sm": "Samoan",
-                "gd": "Scots Gaelic",
-                "sr": "Serbian",
-                "st": "Sesotho",
-                "si": "Sinhala",
-                "sk": "Slovak",
-                "sl": "Slovenian",
-                "so": "Somali",
-                "es": "Spanish",
-                "su": "Sundanese",
-                "sw": "Swahili",
-                "sv": "Swedish",
-                "tl": "Tagalog (Filipino)",
-                "tg": "Tajik",
-                "ta": "Tamil",
-                "tt": "Tatar",
-                "te": "Telugu",
-                "th": "Thai",
-                "tr": "Turkish",
-                "tk": "Turkmen",
-                "uk": "Ukrainian",
-                "ur": "Urdu",
-                "ug": "Uyghur",
-                "uz": "Uzbek",
-                "vi": "Vietnamese",
-                "cy": "Welsh",
-                "xh": "Xhosa",
-                "yi": "Yiddish",
-                "yo": "Yoruba",
-                "zu": "Zulu"
-            };
+  <!-- Google Translate init — autoDisplay:false prevents auto toolbar -->
+  <div id="google_translate_element"></div>
+  <script>
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({ pageLanguage:"en", autoDisplay:false }, "google_translate_element");
+    }
 
-
-            // Auto-fill dropdown after Google loads
-            function populateLanguageDropdown() {
-                let dropdown = document.getElementById("languageSelector");
-                if (!dropdown) return;
-
-                let included = "af,sq,am,ar,hy,az,eu,be,bn,bg,ca,ceb,zh-CN,zh-TW,co,hr,cs,da,nl,en,eo,et,fi,fr,fy,gl,ka,de,el,gu,ht,ha,haw,iw,hi,hmn,hu,is,ig,id,ga,it,ja,jw,kn,kk,km,rw,ko,ku,ky,lo,la,lv,lt,lb,mk,mg,ms,ml,mt,mi, mr,mn,my,ne,no,ny,ps,fa,pl,pt,pa,ro,ru,sm,gd,sr,st,si,sk,sl,so,es,su,sw,sv,tl,tg,ta,tt,te,th,tr,tk,uk,ur,ug,uz,vi,cy,xh,yi,yo,zu";
-
-                let languageList = included.split(",");
-
-                dropdown.innerHTML = ""; // Clear existing
-
-                languageList.forEach(code => {
-                    let option = document.createElement("option");
-                    option.value = code.trim();
-                    option.textContent = languageMap[code.trim()] || code.toUpperCase();
-                    if (code === "en") option.selected = true; // default EN
-                    dropdown.appendChild(option);
-                });
-            }
-
-            // Run after Google Translate widget loads
-            setTimeout(populateLanguageDropdown, 1500);
-        }
-
-        // Custom function to trigger translation
-        function changeLanguage(langCode) {
-            const translateCombo = document.querySelector(".goog-te-combo");
-            if (translateCombo) {
-                translateCombo.value = langCode;
-                translateCombo.dispatchEvent(new Event("change"));
-            }
-        }
-    </script>
-
-
+    function changeLanguage(lang) {
+      if (lang === "en") {
+        document.cookie = "googtrans=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+        document.cookie = "googtrans=; path=/; domain=." + location.hostname + "; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+        location.reload();
+        return;
+      }
+      var val = "/en/" + lang;
+      document.cookie = "googtrans=" + val + "; path=/;";
+      document.cookie = "googtrans=" + val + "; path=/; domain=." + location.hostname + ";";
+      function trigger() {
+        var combo = document.querySelector(".goog-te-combo");
+        if (combo) { combo.value = lang; combo.dispatchEvent(new Event("change")); }
+        else { setTimeout(trigger, 300); }
+      }
+      trigger();
+    }
+  </script>
 </head>
 
 <body id="body">
 
-    <!-- ======= Header ======= -->
-    <header id="header" class="header fixed-top d-flex align-items-center">
-
-        <div class="d-flex align-items-center justify-content-between">
-            <a href="#" class="logo d-flex align-items-center">
-                <img src="{% static 'assets/img/logoe.png' %}" alt="">
-                <span class="d-none text-warning d-lg-block">CrownBridge</span>
-            </a>
-            <i class="bi bi-list toggle-sidebar-btn"></i>
-        </div><!-- End Logo -->
-
-        <nav class="header-nav ms-auto">
-            <ul class="d-flex align-items-center">
-
-                <li class="nav-item d-flex align-items-center" style="margin-left: 10px;">
-                    <select 
-                        id="languageSelector"
-                        onchange="changeLanguage(this.value)"
-                        class="form-select form-select-sm"
-                        style="width: 70px; padding: 3px; font-size: 13px; border-radius: 5px;"
-                    >
-                        <option>Loading…</option>
-                    </select>
-                </li>
-
-                <li class="nav-item dropdown notification-dropdown">
-
-                    <a class="nav-link nav-icon position-relative" href="#" data-bs-toggle="dropdown">
-                        <i class="bi bi-bell"></i>
-
-                        {% if unread_notification_count > 0 %}
-                            <span class="badge bg-danger badge-number">
-                                {{ unread_notification_count }}
-                            </span>
-                        {% endif %}
-                    </a>
-
-                    <ul class="dropdown-menu dropdown-menu-end notification-menu">
-
-                        <li class="dropdown-header d-flex justify-content-between align-items-center">
-                            <span>Notifications</span>
-                            <a href="#" class="text-primary small">
-                                Mark all read
-                            </a>
-                        </li>
-
-                        <li><hr class="dropdown-divider"></li>
-
-                        {% if notifications %}
-                            {% for notification in notifications %}
-                                <li class="notification-item {% if not notification.is_read %}unread{% endif %}">
-                                    <a href="{{ notification.action_url|default:'#' }}" class="d-flex align-items-start">
-                                        <div class="notification-icon">
-                                            <i class="bi {{ notification.icon }}"></i>
-                                        </div>
-                                        <div class="notification-content">
-                                            <p class="mb-1">{{ notification.message }}</p>
-                                            <small class="text-muted">
-                                                {{ notification.created_at|timesince }} ago
-                                            </small>
-                                        </div>
-                                    </a>
-                                </li>
-                            {% endfor %}
-                        {% else %}
-                            <li class="text-center text-muted py-3">
-                                No notifications
-                            </li>
-                        {% endif %}
-
-                        <li><hr class="dropdown-divider"></li>
-
-                        <li class="text-center">
-                            <a href="{% url 'notifications:list' %}" class="dropdown-footer">
-                                View all notifications
-                            </a>
-                        </li>
-
-                    </ul>
-                </li>
-
-                <li class="nav-item dropdown pe-3">
-
-                    <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
-                        <img src="{% static 'assets/img/avatar2.jpg' %}" alt="Profile" class="rounded-circle">
-                        <span class="d-none d-md-block dropdown-toggle ps-2">{{ profile.firstname }}</span>
-                    </a><!-- End Profile Iamge Icon -->
-
-                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
-                        <li class="dropdown-header">
-                            <h6>{{ profile.firstname }}</h6>
-                        </li>
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
-
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="{% url 'profile' %}">
-                                <i class="bi bi-person"></i>
-                                <span>My Profile</span>
-                            </a>
-                        </li>
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
-
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="users-profile.html">
-                                <i class="bi bi-gear"></i>
-                                <span>Account Settings</span>
-                            </a>
-                        </li>
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
-
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="pages-faq.html">
-                                <i class="bi bi-question-circle"></i>
-                                <span>Need Help?</span>
-                            </a>
-                        </li>
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
-
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="{% url 'logout' %}">
-                                <i class="bi bi-box-arrow-right"></i>
-                                <span>Sign Out</span>
-                            </a>
-                        </li>
-
-                    </ul><!-- End Profile Dropdown Items -->
-                </li><!-- End Profile Nav -->
-
-            </ul>
-        </nav><!-- End Icons Navigation -->
-
-    </header><!-- End Header -->
-
-
-
-
-    <main id="main">
-
-    
-        {% block banner-slider %}{% endblock banner-slider %}
-        {% block information %}{% endblock information %}    
-        {% block main-content %}{% endblock main-content %}
-
-
-    </main>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    <!-- ======= Footer ======= -->
-    <footer id="footer" class="footer">
-        <div class="copyright">
-            &copy; Copyright <strong><span>CrownBridge</span></strong>. All Rights Reserved
-        </div>
-        <div class="credits">
-      Designed by <a href="#">Charles</a>
+  <header id="header" class="header fixed-top d-flex align-items-center">
+    <div class="d-flex align-items-center justify-content-between">
+      <a href="#" class="logo d-flex align-items-center">
+        <img src="{% static 'assets/img/logoe.png' %}" alt="">
+        <span class="d-none text-warning d-lg-block">CrownBridge</span>
+      </a>
+      <i class="bi bi-list toggle-sidebar-btn"></i>
     </div>
-  </footer><!-- End Footer -->
+
+    <nav class="header-nav ms-auto">
+      <ul class="d-flex align-items-center">
+
+        <li class="nav-item">
+          <div class="lang-select-wrapper">
+            <select id="languageSelector" onchange="changeLanguage(this.value)" title="Translate page">
+              <option value="en">&#127760; English</option>
+              <option value="fr">&#127467;&#127479; French</option>
+              <option value="es">&#127466;&#127480; Spanish</option>
+              <option value="de">&#127465;&#127466; German</option>
+              <option value="it">&#127470;&#127481; Italian</option>
+              <option value="pt">&#127477;&#127481; Portuguese</option>
+              <option value="ru">&#127479;&#127482; Russian</option>
+              <option value="zh-CN">&#127464;&#127475; Chinese</option>
+              <option value="ar">&#127480;&#127462; Arabic</option>
+              <option value="hi">&#127470;&#127475; Hindi</option>
+              <option value="ja">&#127471;&#127477; Japanese</option>
+              <option value="ko">&#127472;&#127479; Korean</option>
+              <option value="tr">&#127481;&#127479; Turkish</option>
+              <option value="nl">&#127475;&#127473; Dutch</option>
+              <option value="pl">&#127477;&#127473; Polish</option>
+              <option value="sv">&#127480;&#127466; Swedish</option>
+              <option value="uk">&#127482;&#127462; Ukrainian</option>
+              <option value="id">&#127470;&#127465; Indonesian</option>
+              <option value="th">&#127481;&#127469; Thai</option>
+              <option value="vi">&#127483;&#127475; Vietnamese</option>
+              <option value="sw">&#127472;&#127466; Swahili</option>
+              <option value="ha">&#127475;&#127468; Hausa</option>
+              <option value="yo">&#127475;&#127468; Yoruba</option>
+              <option value="ig">&#127475;&#127468; Igbo</option>
+              <option value="am">&#127466;&#127481; Amharic</option>
+              <option value="so">&#127480;&#127476; Somali</option>
+            </select>
+          </div>
+        </li>
+
+        <li class="nav-item dropdown notification-dropdown">
+          <a class="nav-link nav-icon position-relative" href="#" data-bs-toggle="dropdown">
+            <i class="bi bi-bell"></i>
+            {% if unread_notification_count > 0 %}
+              <span class="badge bg-danger badge-number">{{ unread_notification_count }}</span>
+            {% endif %}
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end notification-menu">
+            <li class="dropdown-header d-flex justify-content-between align-items-center">
+              <span>Notifications</span>
+              <a href="#" class="text-primary small">Mark all read</a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            {% if notifications %}
+              {% for notification in notifications %}
+                <li class="notification-item {% if not notification.is_read %}unread{% endif %}">
+                  <a href="{{ notification.action_url|default:'#' }}" class="d-flex align-items-start">
+                    <div class="notification-icon"><i class="bi {{ notification.icon }}"></i></div>
+                    <div class="notification-content">
+                      <p class="mb-1">{{ notification.message }}</p>
+                      <small class="text-muted">{{ notification.created_at|timesince }} ago</small>
+                    </div>
+                  </a>
+                </li>
+              {% endfor %}
+            {% else %}
+              <li class="text-center text-muted py-3">No notifications</li>
+            {% endif %}
+            <li><hr class="dropdown-divider"></li>
+            <li class="text-center">
+              <a href="{% url 'notifications:list' %}" class="dropdown-footer">View all notifications</a>
+            </li>
+          </ul>
+        </li>
+
+        <li class="nav-item dropdown pe-3">
+          <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
+            <img src="{% static 'assets/img/avatar2.jpg' %}" alt="Profile" class="rounded-circle">
+            <span class="d-none d-md-block dropdown-toggle ps-2">{{ profile.firstname }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
+            <li class="dropdown-header"><h6>{{ profile.firstname }}</h6></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item d-flex align-items-center" href="{% url 'profile' %}"><i class="bi bi-person"></i><span>My Profile</span></a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item d-flex align-items-center" href="#"><i class="bi bi-gear"></i><span>Account Settings</span></a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item d-flex align-items-center" href="#"><i class="bi bi-question-circle"></i><span>Need Help?</span></a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item d-flex align-items-center" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right"></i><span>Sign Out</span></a></li>
+          </ul>
+        </li>
+
+      </ul>
+    </nav>
+  </header>
+
+  <main id="main">
+    {% block banner-slider %}{% endblock banner-slider %}
+    {% block information %}{% endblock information %}
+    {% block main-content %}{% endblock main-content %}
+  </main>
+
+  <footer id="footer" class="footer">
+    <div class="copyright">&copy; Copyright <strong><span>CrownBridge</span></strong>. All Rights Reserved</div>
+    <div class="credits">Designed by <a href="#">Charles</a></div>
+  </footer>
+
+  <script src="{% static 'assets/vendor/apexcharts/apexcharts.min.js' %}"></script>
+  <script src="{% static 'assets/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+  <script src="{% static 'assets/vendor/chart.js/chart.umd.js' %}"></script>
+  <script src="{% static 'assets/vendor/echarts/echarts.min.js' %}"></script>
+  <script src="{% static 'assets/vendor/quill/quill.min.js' %}"></script>
+  <script src="{% static 'assets/vendor/simple-datatables/simple-datatables.js' %}"></script>
+  <script src="{% static 'assets/vendor/tinymce/tinymce.min.js' %}"></script>
+  <script src="{% static 'assets/vendor/php-email-form/validate.js' %}"></script>
+
+  <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+  <script>
+    // MutationObserver — destroys Google toolbar the instant it appears in DOM
+    (function killGoogleToolbar() {
+      function nuke() {
+        // Remove the banner iframe entirely from DOM
+        document.querySelectorAll(
+          '.goog-te-banner-frame, iframe.goog-te-banner-frame, iframe[name="google_translate_iframe"]'
+        ).forEach(function(el) { el.parentNode && el.parentNode.removeChild(el); });
+
+        // Collapse every .skiptranslate wrapper Google adds
+        document.querySelectorAll('.skiptranslate').forEach(function(el) {
+          el.style.setProperty('display',    'none',   'important');
+          el.style.setProperty('height',     '0',      'important');
+          el.style.setProperty('max-height', '0',      'important');
+          el.style.setProperty('overflow',   'hidden', 'important');
+          el.style.setProperty('visibility', 'hidden', 'important');
+        });
+
+        // Undo the inline top: 40px Google sets on <body>
+        if (document.body) {
+          document.body.style.setProperty('top', '0px', 'important');
+        }
+      }
+
+      nuke(); // run immediately
+
+      // Watch for any DOM change and re-nuke
+      var observer = new MutationObserver(nuke);
+      observer.observe(document.documentElement, {
+        childList:       true,
+        subtree:         true,
+        attributes:      true,
+        attributeFilter: ['style', 'class']
+      });
+    })();
 
 
+    // Restore dropdown to saved language on page load
+    (function() {
+      var match = document.cookie.match(/(?:^|;)\s*googtrans=\/en\/([^;]+)/);
+      var lang = match ? decodeURIComponent(match[1]) : "en";
+      var sel = document.getElementById("languageSelector");
+      if (sel) sel.value = lang;
+    })();
+  </script>
 
-
-
-    <!-- Vendor JS Files -->
-    <script src="{% static 'assets/vendor/apexcharts/apexcharts.min.js' %}"></script>
-    <script src="{% static 'assets/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
-    <script src="{% static 'assets/vendor/chart.js/chart.umd.js' %}"></script>
-    <script src="{% static 'assets/vendor/echarts/echarts.min.js' %}"></script>
-    <script src="{% static 'assets/vendor/quill/quill.min.js' %}"></script>
-    <script src="{% static 'assets/vendor/simple-datatables/simple-datatables.js' %}"></script>
-    <script src="{% static 'assets/vendor/tinymce/tinymce.min.js' %}"></script>
-    <script src="{% static 'assets/vendor/php-email-form/validate.js' %}"></script>
-
-   <!-- Google Translate Script -->
-    <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-
-    <!-- Template Main JS File -->
-    <script src="{% static 'assets/js/script.js' %}"></script>
-    <script src="{% static 'payment/js/deposit_toggle.js' %}"></script>
-    <script src="{% static 'payment/js/tron_deposit.js' %}"></script>
-    <script src="{% static 'payment/js/metamask_deposit.js' %}"></script>
-
+  <script src="{% static 'assets/js/script.js' %}"></script>
+  <script src="{% static 'payment/js/deposit_toggle.js' %}"></script>
+  <script src="{% static 'payment/js/tron_deposit.js' %}"></script>
+  <script src="{% static 'payment/js/metamask_deposit.js' %}"></script>
 
 </body>
-
 </html>
