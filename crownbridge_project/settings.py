@@ -24,7 +24,6 @@ SECRET_KEY = env("SECRET_KEY", "django-insecure-change-me-in-production")
 DEBUG = env("DEBUG", "False").lower() == "true"
 
 ALLOWED_HOSTS = env(
-    "ALLOWED_HOSTS",
     "localhost,127.0.0.1",
     "crown-mqge.onrender.com",
     "crownbridgeltd.com"
