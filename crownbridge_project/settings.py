@@ -25,7 +25,9 @@ DEBUG = env("DEBUG", "False").lower() == "true"
 
 ALLOWED_HOSTS = env(
     "ALLOWED_HOSTS",
-    "localhost,127.0.0.1"
+    "localhost,127.0.0.1",
+    "crown-mqge.onrender.com",
+    "crownbridgeltd.com"
 ).split(",")
 
 # CSRF trusted origins (required for modern Django behind a proxy)
