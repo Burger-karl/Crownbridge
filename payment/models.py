@@ -1,4 +1,3 @@
-# payment/models.py
 import uuid
 from decimal import Decimal
 from django.conf import settings
@@ -14,9 +13,6 @@ class UserBalance(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def has_reference(self, reference: str) -> bool:
-        """
-        Prevent duplicate credits/debits for the same blockchain tx or mock tx.
-        """
         if not reference:
             return False
         return Transaction.objects.filter(
@@ -49,7 +45,6 @@ class UserBalance(models.Model):
         )
         self.balance = (self.balance or Decimal('0')) - amount
         self.save(update_fields=['balance', 'updated_at'])
-
 
 
 class Transaction(models.Model):
@@ -88,7 +83,7 @@ class PlatformWallet(models.Model):
     address = models.CharField(max_length=128, blank=True, null=True)
     name = models.CharField(max_length=50)
     chain = models.CharField(max_length=32, choices=CHAIN_CHOICES)
-    xpub = models.TextField(blank=True, null=True, help_text="Extended public key to derive deposit addresses (no priv keys!)")
+    xpub = models.TextField(blank=True, null=True)
     provider = models.CharField(max_length=50, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -103,10 +98,9 @@ class DepositAddress(models.Model):
     derivation_index = models.BigIntegerField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     active = models.BooleanField(default=True)
-    
 
     class Meta:
-        unique_together = ("user", "platform_wallet")
+        unique_together = (("user", "platform_wallet"),)
 
     def __str__(self):
         return f"{self.user} -> {self.address or 'Pending...'} ({self.platform_wallet.chain})"
@@ -125,12 +119,27 @@ class Deposit(models.Model):
     deposit_address = models.ForeignKey(DepositAddress, on_delete=models.SET_NULL, null=True, blank=True)
     tx_hash = models.CharField(max_length=128, db_index=True, unique=True)
     from_address = models.CharField(max_length=128, blank=True, null=True)
-    token_contract = models.CharField(max_length=128, help_text="Token contract address (USDT)", null=True, blank=True)
+    token_contract = models.CharField(max_length=128, null=True, blank=True)
     amount = models.DecimalField(max_digits=32, decimal_places=18, null=True, blank=True)
     amount_raw = models.DecimalField(max_digits=64, decimal_places=0, null=True, blank=True)
     confirmations = models.IntegerField(default=0)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
-    credited = models.BooleanField(default=False, help_text="Whether user's internal balance was credited")
+    credited = models.BooleanField(default=False)
+
+    admin_approved = models.BooleanField(
+        default=False,
+        help_text="Admin must approve this deposit before it is credited to the user's balance."
+    )
+    admin_approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name="approved_deposits",
+        help_text="Staff member who approved this deposit."
+    )
+    admin_approved_at = models.DateTimeField(null=True, blank=True)
+    admin_note = models.TextField(blank=True, null=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     investment_intent = models.ForeignKey(
@@ -140,12 +149,12 @@ class Deposit(models.Model):
         on_delete=models.SET_NULL
     )
 
-
     class Meta:
         indexes = [models.Index(fields=["tx_hash"]), models.Index(fields=["status"])]
 
     def __str__(self):
-        return f"{self.user} deposit {self.amount} ({self.status})"
+        approved = "✓ approved" if self.admin_approved else "⏳ awaiting approval"
+        return f"{self.user} deposit {self.amount} ({self.status} / {approved})"
 
 
 class WithdrawalRequest(models.Model):
@@ -173,6 +182,7 @@ class WithdrawalRequest(models.Model):
     def __str__(self):
         return f"Withdrawal {self.amount} {self.chain} for {self.user} ({self.status})"
 
+
 class P2PTransfer(models.Model):
     CHAIN_CHOICES = [
         ("tron", "TRON"),
@@ -198,4 +208,3 @@ class P2PTransfer(models.Model):
 
     def __str__(self):
         return f"P2P {self.amount} {self.chain} from {self.sender} → {self.receiver}"
-

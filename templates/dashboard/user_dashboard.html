@@ -159,6 +159,21 @@
 
 <div class="container py-4">
 
+    {% if pending_deposit_count and pending_deposit_count > 0 %}
+    <div class="alert alert-warning d-flex align-items-center mb-4" role="alert">
+        <i class="bi bi-hourglass-split fs-5 me-3 flex-shrink-0"></i>
+        <div>
+            You have
+            <strong>{{ pending_deposit_count }} deposit{{ pending_deposit_count|pluralize }}</strong>
+            awaiting admin review.
+            Your balance will be credited once approved.
+            <a href="{% url 'payment:deposit_history' %}" class="alert-link ms-1">
+                View status →
+            </a>
+        </div>
+    </div>
+  {% endif %}
+
   <div class="row g-4">
     <!-- CARD 1: Total Amount + Crypto Swiper + Action Buttons -->
     <div class="col-lg-6">

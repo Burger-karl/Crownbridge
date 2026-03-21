@@ -1,91 +1,105 @@
 # payment/views.py
-import json
-import logging
-from decimal import Decimal, InvalidOperation
-from uuid import uuid4
-
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.contrib.admin.views.decorators import staff_member_required
-from django.core.paginator import Paginator
-from django.db import transaction, models
-from django.http import JsonResponse
+from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib import messages
+from django.urls import reverse
+from django.http import JsonResponse
+import json
 from django.utils import timezone
-from django.views.decorators.http import require_POST, require_http_methods
-
+from django.views.decorators.csrf import csrf_exempt
+from django.db import transaction
+from uuid import uuid4
 from users.models import CustomUser
-from .forms import WithdrawalRequestForm, TransferForm, DepositForm, P2PTransferForm
-from .models import (
-    WithdrawalRequest, UserBalance, Transaction,
-    Deposit, PlatformWallet, DepositAddress, P2PTransfer,
-)
+from .forms import WithdrawalRequestForm, TransferForm, DepositForm
+from .models import WithdrawalRequest, UserBalance, Transaction, Deposit, PlatformWallet, DepositAddress
 from .deposit_processor import finalize_deposit
 from .constants import RECEIVER_ADDRESSES
-from .services.p2ptransfer import p2p_transfer
-
-logger = logging.getLogger(__name__)
+from payment.services.btc_withdrawal import send_btc_tatum
 
 
-# ------------------------------------------------------------------
-# Withdrawal
-# ------------------------------------------------------------------
+def is_staff(user):
+    return user.is_staff
+
+
+# ── Wallet address helper ─────────────────────────────────────────────────────
+
+def get_user_wallet_addresses(profile):
+    """
+    Returns a dict of { label: address } for wallets the user has saved.
+    Only non-empty values are included.
+    """
+    mapping = [
+        ("Bitcoin (BTC)",  profile.bitcoin_id),
+        ("Ethereum (ETH)", profile.ethereum_id),
+        ("USDT (TRC20)",   profile.usdt_trc20_id),
+        ("Tron (TRX)",     profile.tron_id),
+        ("BEP20",          profile.bep20_id),
+    ]
+    return {label: addr for label, addr in mapping if addr}
+
+
+def get_receiver_address_for_chain(chain):
+    """
+    Returns the platform receiver address for a given chain key.
+    Falls back to PlatformWallet.address if set, otherwise RECEIVER_ADDRESSES constant.
+    """
+    # prefer PlatformWallet address if one is configured in DB
+    try:
+        pw = PlatformWallet.objects.get(chain=chain)
+        if pw.address:
+            return pw.address
+    except PlatformWallet.DoesNotExist:
+        pass
+    # fall back to constants.py
+    return RECEIVER_ADDRESSES.get(chain, "")
+
+
+# ── Withdraw ──────────────────────────────────────────────────────────────────
 
 @login_required
-@require_http_methods(["GET", "POST"])
 def withdraw_page(request):
     from investment.models import UserInvestment
     investments = UserInvestment.objects.filter(user=request.user)
-    total_invested = sum((inv.amount_invested for inv in investments), Decimal("0"))
-    total_expected_profit = sum((inv.calculate_expected_profit() for inv in investments), Decimal("0"))
+
+    total_invested         = sum((inv.amount_invested for inv in investments), Decimal("0"))
+    total_expected_profit  = sum((inv.calculate_expected_profit() for inv in investments), Decimal("0"))
+
     ub, _ = UserBalance.objects.get_or_create(user=request.user)
 
     if request.method == "POST":
         form = WithdrawalRequestForm(request.POST, user=request.user)
         if form.is_valid():
             amount = form.cleaned_data["amount"]
-            chain = form.cleaned_data["chain"]
-            to_address_raw = form.cleaned_data["to_address"].split(":", 1)[-1]
+            chain  = form.cleaned_data["chain"]
+            to_address_raw = form.cleaned_data["to_address"].split(":", 1)[1]
 
             if amount <= Decimal("0"):
-                messages.error(request, "Enter a valid withdrawal amount.")
+                messages.error(request, "Enter a valid amount.")
                 return redirect("payment:withdraw")
 
             if ub.balance < amount:
-                messages.error(request, "Insufficient balance for this withdrawal.")
+                messages.error(request, "Insufficient balance for withdrawal.")
                 return redirect("payment:withdraw")
 
-            # Debit the balance immediately when the request is submitted
-            # so users cannot double-spend a pending withdrawal
-            with transaction.atomic():
-                ub_locked = UserBalance.objects.select_for_update().get(user=request.user)
-                if ub_locked.balance < amount:
-                    messages.error(request, "Insufficient balance.")
-                    return redirect("payment:withdraw")
-
-                wr = WithdrawalRequest.objects.create(
-                    user=request.user,
-                    amount=amount,
-                    chain=chain,
-                    to_address=to_address_raw,
-                    status="pending",
-                )
-                ub_locked.debit(
-                    amount,
-                    note=f"Withdrawal request #{wr.id}",
-                    reference=str(wr.id),
-                )
-
-            messages.success(request, "Withdrawal request submitted. Processing will begin shortly.")
+            WithdrawalRequest.objects.create(
+                user=request.user,
+                amount=amount,
+                chain=chain,
+                to_address=to_address_raw,
+                status="pending"
+            )
+            messages.success(request, "Withdrawal submitted — processing.")
             return redirect("payment:withdrawals")
     else:
         form = WithdrawalRequestForm(initial={"chain": "ethereum"}, user=request.user)
 
     return render(request, "payment/withdrawal_request.html", {
-        "form": form,
-        "total_invested": total_invested,
+        "form":                  form,
+        "total_invested":        total_invested,
         "total_expected_profit": total_expected_profit,
-        "user_balance": ub.balance,
+        "user_balance":          ub.balance,
     })
 
 
@@ -102,113 +116,92 @@ def pending_withdrawals(request):
 
 
 @staff_member_required
-@require_POST
-def approve_withdrawal(request, wid):
-    withdrawal = get_object_or_404(WithdrawalRequest, id=wid, status="pending")
-    withdrawal.status = "approved"
-    withdrawal.processed_at = timezone.now()
-    withdrawal.admin_note = (withdrawal.admin_note or "") + f"\nApproved by {request.user}"
-    withdrawal.save(update_fields=["status", "processed_at", "admin_note"])
-    messages.success(request, "Withdrawal approved. Proceed to payment.")
-    return redirect("payment:admin_pending_withdrawals")
-
-
-@staff_member_required
-@require_POST
 def decline_withdrawal(request, wid):
     wr = get_object_or_404(WithdrawalRequest, pk=wid)
     if wr.status != "pending":
-        messages.error(request, "Withdrawal is not in pending status.")
+        messages.error(request, "Withdrawal is not pending.")
         return redirect("payment:admin_pending_withdrawals")
 
-    with transaction.atomic():
-        wr.status = "rejected"
-        wr.processed_at = timezone.now()
-        wr.admin_note = (wr.admin_note or "") + f"\nRejected by {request.user} at {wr.processed_at}"
-        wr.save(update_fields=["status", "processed_at", "admin_note"])
+    wr.status       = "rejected"
+    wr.processed_at = timezone.now()
+    wr.admin_note   = (wr.admin_note or "") + f"\nRejected by {request.user} at {wr.processed_at}"
+    wr.save(update_fields=["status", "processed_at", "admin_note"])
 
-        # Refund the user's balance since it was debited on submission
-        ub, _ = UserBalance.objects.get_or_create(user=wr.user)
-        ub.credit(
-            wr.amount,
-            note=f"Refund for rejected withdrawal #{wr.id}",
-            reference=f"refund_{wr.id}",
-        )
-
-    messages.info(request, f"Withdrawal {wr.id} rejected and amount refunded to user.")
+    messages.info(request, f"Rejected withdrawal {wr.id}.")
     return redirect("payment:admin_pending_withdrawals")
 
 
 @staff_member_required
 def admin_withdrawal_payment(request, wid):
-    from payment.services.btc_withdrawal import send_btc_tatum
     from payment.services.eth_withdrawal import send_eth, send_usdt_erc20
     from payment.services.tron_withdrawal import send_trx, send_usdt_trc20
 
     withdrawal = get_object_or_404(WithdrawalRequest, id=wid, status="approved")
 
     if request.method == "POST":
-        try:
-            amount = Decimal(request.POST.get("amount", "0"))
-        except InvalidOperation:
-            messages.error(request, "Invalid amount.")
-            return redirect("payment:admin_pending_withdrawals")
-
-        chain = request.POST.get("chain")
+        amount = Decimal(request.POST.get("amount"))
+        chain  = request.POST.get("chain")
 
         try:
             withdrawal.status = "processing"
             withdrawal.save(update_fields=["status"])
 
-            chain_map = {
-                "bitcoin": lambda: send_btc_tatum(withdrawal.to_address, amount),
-                "ethereum": lambda: send_eth(withdrawal.to_address, amount),
-                "tron": lambda: send_trx(withdrawal.to_address, amount),
-                "usdt_erc20": lambda: send_usdt_erc20(withdrawal.to_address, amount),
-                "usdt_trc20": lambda: send_usdt_trc20(withdrawal.to_address, amount),
-            }
+            if chain == "bitcoin":
+                tx_hash = send_btc_tatum(withdrawal.to_address, amount)
+            elif chain == "ethereum":
+                tx_hash = send_eth(withdrawal.to_address, amount)
+            elif chain == "tron":
+                tx_hash = send_trx(withdrawal.to_address, amount)
+            elif chain == "usdt_erc20":
+                tx_hash = send_usdt_erc20(withdrawal.to_address, amount)
+            elif chain == "usdt_trc20":
+                tx_hash = send_usdt_trc20(withdrawal.to_address, amount)
+            else:
+                raise Exception("Unsupported chain")
 
-            if chain not in chain_map:
-                raise ValueError(f"Unsupported chain: {chain}")
-
-            tx_hash = chain_map[chain]()
-
-            withdrawal.tx_hash = tx_hash
-            withdrawal.status = "sent"
+            withdrawal.tx_hash      = tx_hash
+            withdrawal.status       = "sent"
             withdrawal.processed_at = timezone.now()
             withdrawal.save()
 
-            logger.info("Withdrawal %s sent on chain %s, tx=%s", wid, chain, tx_hash)
-            messages.success(request, f"Withdrawal sent. TX: {tx_hash}")
+            messages.success(request, "Withdrawal sent successfully.")
             return redirect("payment:admin_pending_withdrawals")
 
         except Exception as e:
-            withdrawal.status = "failed"
-            withdrawal.admin_note = (withdrawal.admin_note or "") + f"\nFailed: {e}"
-            withdrawal.save(update_fields=["status", "admin_note"])
-            logger.error("Withdrawal %s failed: %s", wid, e)
+            withdrawal.status     = "failed"
+            withdrawal.admin_note = str(e)
+            withdrawal.save()
             messages.error(request, f"Payment failed: {e}")
 
     return render(request, "payment/withdrawal_payment.html", {
-        "withdrawal": withdrawal,
+        "withdrawal":        withdrawal,
         "receiver_addresses": RECEIVER_ADDRESSES,
     })
 
 
-# ------------------------------------------------------------------
-# Deposits
-# ------------------------------------------------------------------
+@staff_member_required
+def approve_withdrawal(request, wid):
+    withdrawal = get_object_or_404(WithdrawalRequest, id=wid, status="pending")
+    withdrawal.status       = "approved"
+    withdrawal.processed_at = timezone.now()
+    withdrawal.admin_note   = (withdrawal.admin_note or "") + f"\nApproved by {request.user}"
+    withdrawal.save(update_fields=["status", "processed_at", "admin_note"])
+    messages.success(request, "Withdrawal approved. Proceed to payment.")
+    return redirect("payment:admin_pending_withdrawals")
+
+
+# ── Deposit page ──────────────────────────────────────────────────────────────
 
 @login_required
-@require_http_methods(["GET", "POST"])
 def deposit_page(request):
     profile = request.user.profile
 
     if request.method == "POST":
         form = DepositForm(request.POST)
         if form.is_valid():
-            chain = form.cleaned_data["chain"]
+            chain  = form.cleaned_data["chain"]
             amount = form.cleaned_data["amount"]
+
             platform_wallet = get_object_or_404(PlatformWallet, chain=chain)
 
             deposit = Deposit.objects.create(
@@ -218,54 +211,128 @@ def deposit_page(request):
                 tx_hash=f"intent_{uuid4().hex}",
                 status="pending",
                 credited=False,
+                admin_approved=False,       # ← requires admin approval
             )
+
             messages.success(request, "Deposit intent created.")
             return redirect("payment:deposit_instructions", deposit_id=deposit.id)
     else:
         form = DepositForm()
 
-    wallet_addresses = {
-        "Bitcoin (BTC)": profile.bitcoin_id,
-        "Ethereum (ETH)": profile.ethereum_id,
-        "USDT (TRC20)": profile.usdt_trc20_id,
-        "Tron (TRX)": profile.tron_id,
-        "BEP20": profile.bep20_id,
-    }
+    # Build wallet addresses from profile for the dropdown
+    wallet_addresses = get_user_wallet_addresses(profile)
 
     return render(request, "payment/deposit_page.html", {
-        "form": form,
+        "form":             form,
         "wallet_addresses": wallet_addresses,
     })
 
 
+# ── Deposit instructions ──────────────────────────────────────────────────────
+
 @login_required
 def deposit_instructions(request, deposit_id):
     deposit = get_object_or_404(Deposit, id=deposit_id, user=request.user)
-    receiver_address = deposit.platform_wallet.address if deposit.platform_wallet else None
+
+    chain = deposit.platform_wallet.chain if deposit.platform_wallet else None
+
+    # Get the correct receiver address for this chain
+    receiver_address = get_receiver_address_for_chain(chain) if chain else ""
 
     return render(request, "payment/deposit_instructions.html", {
-        "deposit": deposit,
+        "deposit":          deposit,
         "receiver_address": receiver_address,
-        "chain": deposit.platform_wallet.chain if deposit.platform_wallet else None,
+        "chain":            chain,
     })
 
 
+# ── Deposit history ───────────────────────────────────────────────────────────
+
 @login_required
 def deposit_history(request):
-    deposits = Deposit.objects.filter(user=request.user).order_by("-created_at")
+    """
+    Show only deposits that have been admin-approved OR are still pending.
+    Rejected deposits are hidden from user view.
+    """
+    deposits = Deposit.objects.filter(
+        user=request.user
+    ).exclude(
+        status="rejected"
+    ).order_by("-created_at")
     return render(request, "payment/deposit_history.html", {"deposits": deposits})
+
+
+# ── Admin deposit approval view ───────────────────────────────────────────────
+
+@staff_member_required
+def admin_pending_deposits(request):
+    """
+    Staff view: lists all deposits awaiting admin approval.
+    Shows confirmed deposits that have not yet been approved.
+    """
+    pending = Deposit.objects.filter(
+        admin_approved=False
+    ).exclude(
+        status="rejected"
+    ).order_by("created_at").select_related("user", "platform_wallet")
+
+    return render(request, "payment/admin_pending_deposits.html", {"pending": pending})
+
+
+@staff_member_required
+def admin_approve_deposit(request, deposit_id):
+    """Approve a deposit — triggers signal to credit user balance."""
+    deposit = get_object_or_404(Deposit, id=deposit_id)
+
+    if deposit.admin_approved:
+        messages.info(request, "Deposit already approved.")
+        return redirect("payment:admin_pending_deposits")
+
+    if deposit.status not in ("confirmed", "pending"):
+        messages.error(request, f"Cannot approve deposit with status '{deposit.status}'.")
+        return redirect("payment:admin_pending_deposits")
+
+    # Mark confirmed if still pending (trust that admin has verified the payment)
+    if deposit.status == "pending":
+        deposit.status = "confirmed"
+
+    deposit.admin_approved    = True
+    deposit.admin_approved_by = request.user
+    deposit.admin_approved_at = timezone.now()
+    deposit.save()
+    # post_save signal fires → credit_on_confirm → balance credited
+
+    messages.success(request, f"Deposit {deposit.id} approved. User balance credited.")
+    return redirect("payment:admin_pending_deposits")
+
+
+@staff_member_required
+def admin_reject_deposit(request, deposit_id):
+    """Reject a deposit — user balance is NOT credited."""
+    deposit = get_object_or_404(Deposit, id=deposit_id)
+
+    if deposit.credited:
+        messages.error(request, "Cannot reject a deposit that has already been credited.")
+        return redirect("payment:admin_pending_deposits")
+
+    deposit.status     = "rejected"
+    deposit.admin_note = (deposit.admin_note or "") + f"\nRejected by {request.user} at {timezone.now()}"
+    deposit.save(update_fields=["status", "admin_note"])
+
+    messages.info(request, f"Deposit {deposit.id} rejected.")
+    return redirect("payment:admin_pending_deposits")
+
+
+# ── Tron confirm ──────────────────────────────────────────────────────────────
+
+from django.views.decorators.http import require_POST
+from payment.services.tron import verify_tron_transaction
 
 
 @login_required
 @require_POST
 def confirm_tron_deposit(request):
-    from .services.tron import verify_tron_transaction
-
-    tx_hash = request.POST.get("tx_hash", "").strip()
-    if not tx_hash:
-        messages.error(request, "Transaction hash is required.")
-        return redirect("payment:deposit_history")
-
+    tx_hash = request.POST.get("tx_hash")
     deposit = get_object_or_404(Deposit, tx_hash=tx_hash, user=request.user, status="pending")
 
     result = verify_tron_transaction(
@@ -275,97 +342,97 @@ def confirm_tron_deposit(request):
     )
 
     if not result:
-        messages.error(request, "Transaction not confirmed on-chain yet. Please try again later.")
+        messages.error(request, "Transaction not confirmed on blockchain yet.")
         return redirect("payment:deposit_history")
 
     with transaction.atomic():
-        deposit.status = "confirmed"
+        deposit.status       = "confirmed"
         deposit.from_address = result["from"]
         deposit.confirmations = result["confirmations"]
         deposit.save(update_fields=["status", "from_address", "confirmations"])
+        # balance NOT credited yet — admin must approve first
 
-    messages.success(request, "Deposit confirmed and balance credited.")
+    messages.success(request, "Deposit confirmed on blockchain. Awaiting admin approval before balance is credited.")
     return redirect("payment:deposit_history")
+
+
+# ── ETH confirm ───────────────────────────────────────────────────────────────
+
+from payment.services.ethereum import verify_eth_transfer, verify_erc20_usdt
 
 
 @login_required
 @require_POST
 def confirm_eth_deposit(request):
-    from .services.ethereum import verify_eth_transfer, verify_erc20_usdt
+    data    = json.loads(request.body)
+    tx_hash = data.get("tx_hash")
 
-    try:
-        data = json.loads(request.body)
-    except json.JSONDecodeError:
-        return JsonResponse({"error": "Invalid JSON"}, status=400)
-
-    tx_hash = data.get("tx_hash", "").strip()
-    if not tx_hash:
-        return JsonResponse({"error": "tx_hash is required"}, status=400)
-
-    deposit = (
-        Deposit.objects
-        .filter(user=request.user, status="pending")
-        .order_by("-created_at")
-        .first()
-    )
+    deposit = Deposit.objects.filter(
+        user=request.user,
+        status="pending"
+    ).last()
 
     if not deposit:
         return JsonResponse({"error": "No pending deposit found"}, status=400)
 
-    chain = deposit.platform_wallet.chain if deposit.platform_wallet else ""
-
-    if chain == "ethereum":
-        result = verify_eth_transfer(tx_hash, deposit.platform_wallet.address, deposit.amount)
-    elif chain in ("usdt_erc20", "bsc"):
-        result = verify_erc20_usdt(tx_hash, deposit.platform_wallet.address, deposit.amount)
+    if deposit.platform_wallet and deposit.platform_wallet.chain == "ethereum":
+        result = verify_eth_transfer(
+            tx_hash,
+            expected_to=deposit.platform_wallet.address,
+            expected_amount=deposit.amount,
+        )
     else:
-        return JsonResponse({"error": f"Unsupported chain: {chain}"}, status=400)
+        result = verify_erc20_usdt(
+            tx_hash,
+            expected_to=deposit.platform_wallet.address,
+            expected_amount=deposit.amount,
+        )
 
     if not result:
-        return JsonResponse({"error": "Transaction not confirmed on-chain"}, status=400)
+        return JsonResponse({"error": "Transaction not confirmed"}, status=400)
 
     with transaction.atomic():
-        deposit.tx_hash = tx_hash
-        deposit.from_address = result["from"]
+        deposit.tx_hash       = tx_hash
+        deposit.from_address  = result["from"]
         deposit.confirmations = result.get("confirmations", 0)
-        deposit.status = "confirmed"
+        deposit.status        = "confirmed"
         deposit.save()
+        # balance NOT credited yet — admin must approve first
 
-    return JsonResponse({"success": True})
+    return JsonResponse({"success": True, "message": "Deposit confirmed. Awaiting admin approval."})
+
+
+# ── BTC confirm ───────────────────────────────────────────────────────────────
+
+from payment.services.bitcoin import verify_btc_transaction
 
 
 @login_required
-@require_POST
 def confirm_btc_deposit(request):
-    from .services.bitcoin import verify_btc_transaction
-
-    tx_hash = request.POST.get("tx_hash", "").strip()
-    if not tx_hash:
-        messages.error(request, "Transaction hash is required.")
-        return redirect("payment:deposit_history")
-
+    tx_hash = request.POST.get("tx_hash")
     deposit = get_object_or_404(Deposit, user=request.user, status="pending")
 
-    result = verify_btc_transaction(tx_hash, deposit.platform_wallet.address, deposit.amount)
+    result = verify_btc_transaction(
+        tx_hash,
+        expected_to=deposit.platform_wallet.address,
+        expected_amount=deposit.amount,
+    )
 
     if not result or result["confirmations"] < 2:
-        messages.error(request, "Transaction not yet confirmed (needs at least 2 confirmations).")
+        messages.error(request, "Transaction not confirmed yet.")
         return redirect("payment:deposit_history")
 
-    deposit.tx_hash = tx_hash
+    deposit.tx_hash       = tx_hash
     deposit.confirmations = result["confirmations"]
-    deposit.status = "confirmed"
+    deposit.status        = "confirmed"
     deposit.save()
+    # balance NOT credited yet — admin must approve first
 
-    finalize_deposit(deposit)
-
-    messages.success(request, "Bitcoin deposit confirmed.")
+    messages.success(request, "Bitcoin deposit confirmed. Awaiting admin approval before balance is credited.")
     return redirect("payment:deposit_history")
 
 
-# ------------------------------------------------------------------
-# Transfers
-# ------------------------------------------------------------------
+# ── Transfers ─────────────────────────────────────────────────────────────────
 
 @login_required
 def transfer_history(request):
@@ -373,32 +440,26 @@ def transfer_history(request):
     return render(request, "payment/transfer_history.html", {"transactions": txs})
 
 
+from .models import P2PTransfer
+from .forms import P2PTransferForm
+from .services.p2ptransfer import p2p_transfer
+
+
 @login_required
-@require_http_methods(["GET", "POST"])
 def p2p_transfer_view(request):
     if request.method == "POST":
         form = P2PTransferForm(request.POST)
         if form.is_valid():
             receiver_email = form.cleaned_data["receiver_email"]
-            amount = form.cleaned_data["amount"]
-            chain = form.cleaned_data["chain"]
-
-            if receiver_email == request.user.email:
-                messages.error(request, "You cannot transfer to yourself.")
-                return redirect("payment:p2ptransfer")
+            amount         = form.cleaned_data["amount"]
+            chain          = form.cleaned_data["chain"]
 
             try:
                 receiver = CustomUser.objects.get(email=receiver_email)
-            except CustomUser.DoesNotExist:
-                messages.error(request, "No user found with that email address.")
-                return redirect("payment:p2ptransfer")
-
-            try:
                 p2p_transfer(sender=request.user, receiver=receiver, amount=amount, chain=chain)
-                messages.success(request, f"Sent {amount} {chain.upper()} to {receiver.email}.")
+                messages.success(request, f"Sent {amount} {chain.upper()} to {receiver.email}")
                 return redirect("payment:transfer_history")
             except Exception as e:
-                logger.error("P2P transfer error: %s", e)
                 messages.error(request, str(e))
                 return redirect("payment:p2ptransfer")
     else:
@@ -407,11 +468,17 @@ def p2p_transfer_view(request):
     return render(request, "payment/p2p_transfer.html", {"form": form})
 
 
+# ── Transaction history ───────────────────────────────────────────────────────
+
+from django.db.models import Q
+from django.core.paginator import Paginator
+
+
 @login_required
 def transaction_history_view(request):
     user = request.user
 
-    deposits = Deposit.objects.filter(user=user).annotate(
+    deposits = Deposit.objects.filter(user=user).exclude(status="rejected").annotate(
         tx_type=models.Value("Deposit", output_field=models.CharField())
     )
     withdrawals = WithdrawalRequest.objects.filter(user=user).annotate(
@@ -424,13 +491,19 @@ def transaction_history_view(request):
         tx_type=models.Value("P2P Received", output_field=models.CharField())
     )
 
-    all_txs = list(deposits) + list(withdrawals) + list(sent_transfers) + list(received_transfers)
-    all_txs.sort(
-        key=lambda x: getattr(x, "created_at", None) or getattr(x, "requested_at", None),
-        reverse=True,
+    transactions = (
+        list(deposits) + list(withdrawals) +
+        list(sent_transfers) + list(received_transfers)
+    )
+    transactions.sort(
+        key=lambda x: getattr(x, "created_at", None) or getattr(x, "processed_at", None),
+        reverse=True
     )
 
-    paginator = Paginator(all_txs, 10)
-    tx_page_obj = paginator.get_page(request.GET.get("page"))
+    paginator    = Paginator(transactions, 10)
+    tx_page_obj  = paginator.get_page(request.GET.get("page"))
 
     return render(request, "payment/transaction_history.html", {"tx_page_obj": tx_page_obj})
+
+
+from django.db import models
