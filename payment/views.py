@@ -279,32 +279,84 @@ def admin_pending_deposits(request):
     return render(request, "payment/admin_pending_deposits.html", {"pending": pending})
 
 
+from django.db import transaction
+from django.utils import timezone
+from django.contrib import messages
+from django.shortcuts import get_object_or_404, redirect
+
+from .models import Deposit, UserBalance
+
+
 @staff_member_required
+@transaction.atomic
 def admin_approve_deposit(request, deposit_id):
-    """Approve a deposit — triggers signal to credit user balance."""
-    deposit = get_object_or_404(Deposit, id=deposit_id)
+    """
+    Production-safe deposit approval.
+
+    - Prevents double-crediting
+    - Uses row locking
+    - Credits balance immediately
+    - Marks deposit as credited
+    """
+
+    deposit = (
+        Deposit.objects
+        .select_for_update()
+        .select_related("user")
+        .get(id=deposit_id)
+    )
 
     if deposit.admin_approved:
         messages.info(request, "Deposit already approved.")
         return redirect("payment:admin_pending_deposits")
 
     if deposit.status not in ("confirmed", "pending"):
-        messages.error(request, f"Cannot approve deposit with status '{deposit.status}'.")
+        messages.error(
+            request,
+            f"Cannot approve deposit with status '{deposit.status}'."
+        )
         return redirect("payment:admin_pending_deposits")
 
-    # Mark confirmed if still pending (trust that admin has verified the payment)
+    # If admin verified payment manually
     if deposit.status == "pending":
         deposit.status = "confirmed"
 
-    deposit.admin_approved    = True
+    # Lock user balance row
+    user_balance, _ = (
+        UserBalance.objects
+        .select_for_update()
+        .get_or_create(user=deposit.user)
+    )
+
+    # Prevent duplicate crediting
+    if deposit.credited:
+        messages.warning(request, "Deposit already credited.")
+        return redirect("payment:admin_pending_deposits")
+
+    # CREDIT USER
+    user_balance.balance += deposit.amount
+    user_balance.save(update_fields=["balance"])
+
+    # MARK DEPOSIT
+    deposit.admin_approved = True
     deposit.admin_approved_by = request.user
     deposit.admin_approved_at = timezone.now()
-    deposit.save()
-    # post_save signal fires → credit_on_confirm → balance credited
+    deposit.credited = True
 
-    messages.success(request, f"Deposit {deposit.id} approved. User balance credited.")
+    deposit.save(update_fields=[
+        "status",
+        "admin_approved",
+        "admin_approved_by",
+        "admin_approved_at",
+        "credited",
+    ])
+
+    messages.success(
+        request,
+        f"${deposit.amount} credited successfully to {deposit.user.email}"
+    )
+
     return redirect("payment:admin_pending_deposits")
-
 
 @staff_member_required
 def admin_reject_deposit(request, deposit_id):

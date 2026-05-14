@@ -138,7 +138,7 @@ def invest_page(request, plan_id):
                 )
 
             messages.success(request, f"Investment of ${amount_dec:.2f} created from your balance.")
-            return redirect("dashboard:user_dashboard")
+            return redirect("user_dashboard")
 
         else:
             messages.info(request, "To deposit from an external wallet, use 'Deposit to Invest'.")

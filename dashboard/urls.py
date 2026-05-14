@@ -6,6 +6,7 @@ from .views import (
     admin_toggle_user_active, admin_delete_user,
 )
 
+
 urlpatterns = [
     path("",                 guest_home_view,     name="guest_home"),
     path("home/",            home_view,           name="home"),
