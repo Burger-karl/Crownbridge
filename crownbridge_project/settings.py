@@ -73,6 +73,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'core.middleware.MaintenanceModeMiddleware',
+
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -263,3 +265,5 @@ LOGGING = {
         },
     },
 }
+
+MAINTENANCE_MODE = os.getenv("MAINTENANCE_MODE", "False") == "True"
