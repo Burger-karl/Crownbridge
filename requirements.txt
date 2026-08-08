@@ -11,7 +11,6 @@ certifi==2025.11.12
 charset-normalizer==3.4.4
 ckzg==2.1.5
 cloudinary==1.44.1
-coincurve==21.0.0
 cytoolz==1.1.0
 Django==5.2.6
 django-cloudinary-storage==0.3.0
@@ -37,14 +36,13 @@ packaging==25.0
 parsimonious==0.10.0
 pillow==11.3.0
 propcache==0.4.1
-psycopg2==2.9.10
+psycopg2-binary==2.9.10
 pycryptodome==3.23.0
 pydantic==2.12.5
 pydantic_core==2.41.5
 PyJWT==2.10.1
 python-dotenv==1.1.1
 pyunormalize==17.0.0
-
 regex==2025.11.3
 requests==2.32.5
 rlp==4.1.0
